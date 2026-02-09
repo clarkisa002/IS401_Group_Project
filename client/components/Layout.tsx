@@ -1,23 +1,31 @@
 import { ReactNode } from "react";
 import { Navbar } from "./Navbar";
 import { Link, useLocation } from "react-router-dom";
-import { ChevronRight, Home } from "lucide-react";
+import { ChevronRight, Home, LayoutDashboard, TrendingUp, Target, PieChart, GraduationCap, Plus } from "lucide-react";
 
 interface LayoutProps {
   children: ReactNode;
 }
 
+const mobileNavItems = [
+  { name: "Dash", path: "/dashboard", icon: LayoutDashboard },
+  { name: "Progress", path: "/progress", icon: TrendingUp },
+  { name: "Goals", path: "/goals", icon: Target },
+  { name: "Spend", path: "/spending", icon: PieChart },
+  { name: "Learn", path: "/education", icon: GraduationCap },
+];
+
 export function Layout({ children }: LayoutProps) {
   const location = useLocation();
-  
+
   // Breadcrumb generator
   const pathnames = location.pathname.split("/").filter((x) => x);
-  
+
   return (
     <div className="relative min-h-screen flex flex-col bg-background selection:bg-primary/10 selection:text-primary">
       <Navbar />
-      
-      <main className="flex-1">
+
+      <main className="flex-1 pb-20 md:pb-0">
         {location.pathname !== "/" && (
           <div className="container py-4">
             <nav className="flex items-center space-x-2 text-sm text-muted-foreground">
@@ -49,7 +57,30 @@ export function Layout({ children }: LayoutProps) {
         {children}
       </main>
 
-      <footer className="border-t bg-card/50 py-12">
+      {/* Mobile Quick-Access Bottom Bar */}
+      <div className="fixed bottom-6 left-1/2 z-50 flex -translate-x-1/2 items-center gap-1 rounded-full border bg-background/80 p-1.5 shadow-2xl backdrop-blur-md md:hidden">
+        {mobileNavItems.map((item) => {
+          const Icon = item.icon;
+          const isActive = location.pathname === item.path;
+          return (
+            <Link
+              key={item.path}
+              to={item.path}
+              className={cn(
+                "flex h-12 w-12 items-center justify-center rounded-full transition-all",
+                isActive ? "bg-primary text-primary-foreground shadow-lg shadow-primary/20 scale-110" : "text-muted-foreground hover:bg-accent"
+              )}
+            >
+              <Icon className="h-5 w-5" />
+            </Link>
+          );
+        })}
+        <button className="flex h-12 w-12 items-center justify-center rounded-full bg-secondary text-secondary-foreground shadow-lg transition-transform hover:rotate-90">
+          <Plus className="h-5 w-5" />
+        </button>
+      </div>
+
+      <footer className="border-t bg-card/50 py-12 hidden md:block">
         <div className="container grid gap-8 md:grid-cols-2 lg:grid-cols-4">
           <div className="space-y-4">
             <div className="flex items-center gap-2">
