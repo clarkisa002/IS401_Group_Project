@@ -1,6 +1,7 @@
 import { Layout } from "@/components/Layout";
 import { useUserData } from "@/hooks/use-user-data";
-import { 
+import { Link } from "react-router-dom";
+import {
   TrendingUp, 
   CreditCard, 
   Wallet, 
