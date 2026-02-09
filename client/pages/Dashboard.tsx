@@ -234,8 +234,8 @@ export default function Dashboard() {
                 <div className="flex items-center justify-between">
                   <div className={cn(
                     "rounded-lg p-2 transition-colors",
-                    metric.color === 'blue' ? "bg-blue-100 text-blue-600" : 
-                    metric.color === 'emerald' ? "bg-emerald-100 text-emerald-600" : 
+                    metric.color === 'blue' ? "bg-blue-100 text-blue-600" :
+                    metric.color === 'emerald' ? "bg-emerald-100 text-emerald-600" :
                     metric.color === 'amber' ? "bg-amber-100 text-amber-600" : "bg-purple-100 text-purple-600"
                   )}>
                     <metric.icon className="h-5 w-5" />
@@ -266,6 +266,55 @@ export default function Dashboard() {
               </CardContent>
             </Card>
           ))}
+        </div>
+
+        {/* Gamification: Achievements & Streak */}
+        <div className="grid gap-8 md:grid-cols-3">
+          <Card className="md:col-span-2">
+            <CardHeader>
+              <CardTitle>Achievement Badges</CardTitle>
+              <CardDescription>Milestones reached on your journey</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="flex flex-wrap gap-4">
+                {data.achievements.map((achievement) => (
+                  <div
+                    key={achievement.id}
+                    className={cn(
+                      "flex flex-col items-center gap-2 p-4 rounded-2xl border text-center transition-all w-[140px]",
+                      achievement.unlocked ? "bg-primary/5 border-primary/20" : "opacity-40 bg-muted grayscale"
+                    )}
+                  >
+                    <div className={cn(
+                      "flex h-12 w-12 items-center justify-center rounded-full shadow-inner",
+                      achievement.unlocked ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"
+                    )}>
+                      <TrendingUp className="h-6 w-6" />
+                    </div>
+                    <span className="text-xs font-bold leading-tight">{achievement.title}</span>
+                    {!achievement.unlocked && <span className="text-[10px] uppercase tracking-tighter font-bold">Locked</span>}
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-gradient-to-br from-orange-500 to-red-600 text-white border-none shadow-lg shadow-orange-500/20">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <TrendingUp className="h-5 w-5" />
+                Saving Streak
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="text-center py-8">
+              <div className="text-6xl font-black mb-2">{data.streak}</div>
+              <div className="text-sm font-bold uppercase tracking-widest opacity-80">Months Strong</div>
+              <p className="mt-6 text-sm leading-relaxed opacity-90">
+                You've consistently saved for {data.streak} months.
+                Keep it up to reach your goal by Dec 2025!
+              </p>
+            </CardContent>
+          </Card>
         </div>
 
         {/* Call to Action Section */}
