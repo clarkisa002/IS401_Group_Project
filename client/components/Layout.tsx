@@ -2,6 +2,7 @@ import { ReactNode } from "react";
 import { Navbar } from "./Navbar";
 import { Link, useLocation } from "react-router-dom";
 import { ChevronRight, Home, LayoutDashboard, TrendingUp, Target, PieChart, GraduationCap, Plus } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 interface LayoutProps {
   children: ReactNode;
