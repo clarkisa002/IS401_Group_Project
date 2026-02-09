@@ -5,6 +5,7 @@ import { ArrowRight, Users, Lightbulb, Home, TrendingUp, ChevronRight } from "lu
 import { Link } from "react-router-dom";
 import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, Tooltip, CartesianGrid, AreaChart, Area } from "recharts";
 import { motion } from "framer-motion";
+import { cn } from "@/lib/utils";
 
 export default function Index() {
   const { data } = useUserData();
