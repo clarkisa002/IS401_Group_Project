@@ -16,6 +16,8 @@
     "build:client": "vite build",
     "build:server": "vite build --config vite.config.server.ts",
     "start": "node dist/server/node-build.mjs",
+    "backend": "cd backend && node server.js",
+    "backend:dev": "cd backend && nodemon server.js",
     "test": "vitest --run",
     "format.fix": "prettier --write .",
     "typecheck": "tsc"
@@ -23,6 +25,7 @@
   "dependencies": {
     "dotenv": "^17.2.1",
     "express": "^5.1.0",
+    "pg": "^8.13.0",
     "zod": "^3.25.76"
   },
   "devDependencies": {
@@ -62,6 +65,7 @@
     "@types/cors": "^2.8.19",
     "@types/express": "^5.0.3",
     "@types/node": "^24.2.1",
+    "@types/pg": "^8.11.6",
     "@types/react": "^18.3.23",
     "@types/react-dom": "^18.3.7",
     "@types/three": "^0.176.0",

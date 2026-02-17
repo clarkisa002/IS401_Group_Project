@@ -32,6 +32,7 @@ export default defineConfig({
         // External dependencies that should not be bundled
         "express",
         "cors",
+        "pg",
       ],
       output: {
         format: "es",
@@ -43,7 +44,7 @@ export default defineConfig({
   },
   resolve: {
     alias: {
-      "@": path.resolve(__dirname, "./client"),
+      "@": path.resolve(__dirname, "./frontend/client"),
       "@shared": path.resolve(__dirname, "./shared"),
     },
   },
