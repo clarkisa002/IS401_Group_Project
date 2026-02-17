@@ -31,6 +31,7 @@ The Home Readiness Planner helps aspiring homeowners move from financial uncerta
 
 
 **Architecture Diagram** - Include a system architecture diagram showing the user, frontend, backend, database, and any external services, with labeled arrows indicating how the components communicate.
+![System Architecture Diagram](docs/architecture.png)
 
 **Prerequisites** -  
 Ensure the following software is installed before running the project locally. This project has been tested on macOS, Linux, and Windows.
