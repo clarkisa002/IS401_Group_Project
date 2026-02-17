@@ -1,4 +1,3 @@
-Your GitHub repository should include a README with the following sections.  
 
 App Summary. Provide a brief (5–8 sentence) overview explaining the problem your application solves, who the primary user is, and what your product does.
 
