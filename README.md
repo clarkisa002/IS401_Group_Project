@@ -32,7 +32,29 @@ The Home Readiness Planner helps aspiring homeowners move from financial uncerta
 
 **Architecture Diagram** - Include a system architecture diagram showing the user, frontend, backend, database, and any external services, with labeled arrows indicating how the components communicate.
 
-**Prerequisites** -  List all required software needed to run the project locally (e.g., Node.js, PostgreSQL, and psql available in the system PATH). Provide links to official installation instructions and include commands to verify installation.
+**Prerequisites** -  
+Ensure the following software is installed before running the project locally. This project has been tested on macOS, Linux, and Windows.
+* Node.js (v18 or higher)
+Install via the official site: https://nodejs.org/en/download
+bashnode -v
+npm -v
+* pnpm
+Install via the official site: https://pnpm.io/installation
+bashpnpm -v
+* PostgreSQL (v14 or higher)
+Install via the official site: https://www.postgresql.org/download
+
+⚠️ After installation, ensure that psql is available in your system PATH. On Windows this is a common issue — you may need to add the PostgreSQL bin directory manually to your PATH environment variable. You can verify by running:
+
+* bashpsql --version
+* Docker (optional — only needed if running the project in a container)
+Install via the official site: https://docs.docker.com/get-docker
+bashdocker -v
+* Git
+Install via the official site: https://git-scm.com/downloads
+bashgit --version
+
+Feel free to let me know if you'd like to adjust the supported OS list or PostgreSQL version requirement to match what you've actually tested on.
 
 **Installation and Setup** - Provide clear step-by-step instructions for installing dependencies, creating the database, running schema.sql and seed.sql, and configuring environment variables if required.
 
