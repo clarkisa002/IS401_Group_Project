@@ -1,7 +1,41 @@
 **App Summary** - 
 The Home Readiness Planner helps aspiring homeowners move from financial uncertainty to a clear, personalized plan for buying a home. Many first-time buyers do not know what they can realistically afford or how long it will take to become buy-ready, and existing tools focus on listings or one-time affordability snapshots rather than long-term preparation. Our primary users are renters and early planners who are months or years away from purchasing and need guidance, not sales pressure. The application allows users to enter financial details, explore real-time affordability scenarios, and generate a step-by-step readiness timeline based on their goals. It highlights key gaps—such as down payment, debt, or income—and provides actionable recommendations to help users improve their position over time. Interactive rent-versus-buy comparisons and multi-scenario planning help users understand the tradeoffs behind each decision. By turning complex financial data into simple, personalized insights, the platform empowers users to make confident and informed housing decisions long before they begin the home-buying process.
 
-**Tech Stack** - List the technologies used in each layer of your system, including frontend framework and tooling, backend framework, database, authentication (if applicable), and any external services or APIs.
+**Tech Stack** - 
+Frontend
+
+React (TypeScript) — UI library for building component-based interfaces
+Vite — development server and build tool
+Tailwind CSS — utility-first CSS framework for styling
+shadcn/ui — accessible, reusable component library built on Radix UI
+
+Backend
+
+Node.js — JavaScript runtime environment
+Express — web framework for handling API routes and server logic
+Netlify Functions — serverless function deployment for backend endpoints
+
+Database
+
+PostgreSQL — relational database
+Custom SQL scripts — used to create and initialize the database schema (no ORM)
+
+Authentication
+
+TBD
+
+Tooling & DevOps
+
+TypeScript — static typing across the full stack
+pnpm — fast, efficient package manager
+Prettier — code formatting
+Docker — containerization for consistent environments
+Netlify — deployment and hosting platform
+
+Shared
+
+A shared/ directory contains common TypeScript types and utility functions shared between the client and server layers
+
 
 **Architecture Diagram** - Include a system architecture diagram showing the user, frontend, backend, database, and any external services, with labeled arrows indicating how the components communicate.
 
