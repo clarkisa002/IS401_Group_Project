@@ -2,6 +2,7 @@
 The Home Readiness Planner helps aspiring homeowners move from financial uncertainty to a clear, personalized plan for buying a home. Many first-time buyers do not know what they can realistically afford or how long it will take to become buy-ready, and existing tools focus on listings or one-time affordability snapshots rather than long-term preparation. Our primary users are renters and early planners who are months or years away from purchasing and need guidance, not sales pressure. The application allows users to enter financial details, explore real-time affordability scenarios, and generate a step-by-step readiness timeline based on their goals. It highlights key gaps—such as down payment, debt, or income—and provides actionable recommendations to help users improve their position over time. Interactive rent-versus-buy comparisons and multi-scenario planning help users understand the tradeoffs behind each decision. By turning complex financial data into simple, personalized insights, the platform empowers users to make confident and informed housing decisions long before they begin the home-buying process.
 
 **Tech Stack** - 
+
 **Frontend**
 
 * React (TypeScript) — UI library for building component-based interfaces
