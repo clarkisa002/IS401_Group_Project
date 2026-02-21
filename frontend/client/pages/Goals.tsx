@@ -1,3 +1,4 @@
+import { useState, useEffect, useCallback } from "react";
 import { Layout } from "@/components/Layout";
 import { useUserData } from "@/hooks/use-user-data";
 import { 
@@ -9,7 +10,8 @@ import {
   Zap, 
   TrendingUp, 
   Calendar,
-  AlertCircle
+  AlertCircle,
+  Loader2
 } from "lucide-react";
 import { 
   ResponsiveContainer, 
@@ -23,10 +25,90 @@ import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
-import { motion } from "framer-motion";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+
+const API_BASE = "http://localhost:3000";
+
+interface DbGoal {
+  goal_id: number;
+  goal_name: string;
+  goal_type: string;
+  target_amount: string;
+  target_date: string | null;
+  current_progress: string;
+  is_active: boolean;
+  created_at: string;
+}
 
 export default function GoalsPage() {
   const { data } = useUserData();
+  const [dbGoals, setDbGoals] = useState<DbGoal[]>([]);
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [goalName, setGoalName] = useState("");
+  const [goalType, setGoalType] = useState("savings");
+  const [targetAmount, setTargetAmount] = useState("");
+  const [targetDate, setTargetDate] = useState("");
+  const [submitError, setSubmitError] = useState<string | null>(null);
+
+  const fetchGoals = useCallback(async () => {
+    try {
+      const res = await fetch(`${API_BASE}/api/goals`);
+      if (res.ok) {
+        const rows: DbGoal[] = await res.json();
+        setDbGoals(rows);
+      }
+    } catch (err) {
+      console.error("Could not reach backend for goals:", err);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchGoals();
+  }, [fetchGoals]);
+
+  const handleSubmit = async () => {
+    if (!goalName.trim() || !targetAmount.trim()) return;
+    setSubmitting(true);
+    setSubmitError(null);
+    try {
+      const res = await fetch(`${API_BASE}/api/goals`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          goal_name: goalName.trim(),
+          goal_type: goalType,
+          target_amount: parseFloat(targetAmount),
+          target_date: targetDate || null,
+        }),
+      });
+      if (res.ok) {
+        setGoalName("");
+        setGoalType("savings");
+        setTargetAmount("");
+        setTargetDate("");
+        setDialogOpen(false);
+        await fetchGoals();
+      } else {
+        const data = await res.json().catch(() => ({}));
+        setSubmitError(data.error || "Could not create goal. Please try again.");
+      }
+    } catch (err) {
+      console.error("Failed to create goal:", err);
+      setSubmitError("Could not reach the server. Make sure the backend is running.");
+    } finally {
+      setSubmitting(false);
+    }
+  };
 
   if (!data) return null;
 
@@ -36,8 +118,8 @@ export default function GoalsPage() {
     { name: "Closing Costs", value: data.savings.allocation.closingCosts, color: "#f59e0b" },
   ];
 
-  const getGoalIcon = (iconName: string) => {
-    switch (iconName) {
+  const getGoalIcon = (type: string) => {
+    switch (type) {
       case 'Home': return Home;
       case 'Shield': return Shield;
       case 'FileText': return FileText;
@@ -53,20 +135,86 @@ export default function GoalsPage() {
             <h1 className="text-3xl font-bold tracking-tight">Your Home Ownership Goals</h1>
             <p className="text-muted-foreground">Define your targets and track your allocation.</p>
           </div>
-          <Button className="gap-2">
+          <Button className="gap-2" onClick={() => setDialogOpen(true)}>
             <Plus className="h-4 w-4" /> Set Up New Goal
           </Button>
         </header>
 
+        <Dialog open={dialogOpen} onOpenChange={(open) => { setDialogOpen(open); if (!open) setSubmitError(null); }}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Create a New Goal</DialogTitle>
+              <DialogDescription>
+                Set a savings target to track your progress toward home ownership.
+              </DialogDescription>
+            </DialogHeader>
+            {submitError && (
+              <div className="rounded-md bg-destructive/10 border border-destructive/20 px-3 py-2 text-sm text-destructive font-medium">
+                {submitError}
+              </div>
+            )}
+            <div className="space-y-4 py-2">
+              <div className="space-y-2">
+                <Label htmlFor="goal-name">Goal Name</Label>
+                <Input
+                  id="goal-name"
+                  placeholder="e.g. Down Payment"
+                  value={goalName}
+                  onChange={(e) => setGoalName(e.target.value)}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="goal-type">Goal Type</Label>
+                <Input
+                  id="goal-type"
+                  placeholder="e.g. savings, debt, investment"
+                  value={goalType}
+                  onChange={(e) => setGoalType(e.target.value)}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="target-amount">Target Amount ($)</Label>
+                <Input
+                  id="target-amount"
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  placeholder="e.g. 60000"
+                  value={targetAmount}
+                  onChange={(e) => setTargetAmount(e.target.value)}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="target-date">Target Date (optional)</Label>
+                <Input
+                  id="target-date"
+                  type="date"
+                  value={targetDate}
+                  onChange={(e) => setTargetDate(e.target.value)}
+                />
+              </div>
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setDialogOpen(false)}>Cancel</Button>
+              <Button onClick={handleSubmit} disabled={submitting || !goalName.trim() || !targetAmount.trim()}>
+                {submitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                Create Goal
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
         <div className="grid gap-8 lg:grid-cols-3">
-          {/* Goal Cards */}
+          {/* Goal Cards — from database */}
           <div className="lg:col-span-2 space-y-6">
             <div className="grid gap-6 sm:grid-cols-2">
-              {data.goals.map((goal) => {
-                const Icon = getGoalIcon(goal.icon);
-                const progress = (goal.current / goal.target) * 100;
+              {dbGoals.map((goal) => {
+                const Icon = getGoalIcon(goal.goal_type);
+                const target = parseFloat(goal.target_amount);
+                const current = parseFloat(goal.current_progress);
+                const progress = target > 0 ? (current / target) * 100 : 0;
                 return (
-                  <Card key={goal.id} className="relative overflow-hidden group">
+                  <Card key={goal.goal_id} className="relative overflow-hidden group">
                     <div className="absolute top-0 right-0 p-4 opacity-10 transition-opacity group-hover:opacity-20">
                       <Icon className="h-16 w-16" />
                     </div>
@@ -74,21 +222,24 @@ export default function GoalsPage() {
                       <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 text-primary mb-2">
                         <Icon className="h-5 w-5" />
                       </div>
-                      <CardTitle className="text-lg">{goal.title}</CardTitle>
+                      <CardTitle className="text-lg">{goal.goal_name}</CardTitle>
                       <CardDescription className="flex items-center gap-1">
-                        <Calendar className="h-3 w-3" /> Target: {new Date(goal.deadline).toLocaleDateString()}
+                        <Calendar className="h-3 w-3" />
+                        {goal.target_date
+                          ? `Target: ${new Date(goal.target_date).toLocaleDateString()}`
+                          : "No deadline set"}
                       </CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-4">
                       <div className="flex items-baseline justify-between">
-                        <span className="text-2xl font-bold">${goal.current.toLocaleString()}</span>
-                        <span className="text-sm text-muted-foreground">of ${goal.target.toLocaleString()}</span>
+                        <span className="text-2xl font-bold">${current.toLocaleString()}</span>
+                        <span className="text-sm text-muted-foreground">of ${target.toLocaleString()}</span>
                       </div>
                       <div className="space-y-2">
                         <Progress value={progress} className="h-2" />
                         <div className="flex justify-between text-xs font-bold uppercase tracking-wider text-muted-foreground">
                           <span>{progress.toFixed(0)}% Complete</span>
-                          <span>${(goal.target - goal.current).toLocaleString()} left</span>
+                          <span>${(target - current).toLocaleString()} left</span>
                         </div>
                       </div>
                     </CardContent>
@@ -96,7 +247,10 @@ export default function GoalsPage() {
                 );
               })}
               
-              <button className="flex flex-col items-center justify-center rounded-xl border-2 border-dashed border-muted-foreground/20 p-8 transition-colors hover:border-primary/50 hover:bg-primary/5 group">
+              <button
+                onClick={() => setDialogOpen(true)}
+                className="flex flex-col items-center justify-center rounded-xl border-2 border-dashed border-muted-foreground/20 p-8 transition-colors hover:border-primary/50 hover:bg-primary/5 group"
+              >
                 <div className="flex h-12 w-12 items-center justify-center rounded-full bg-muted text-muted-foreground transition-colors group-hover:bg-primary group-hover:text-primary-foreground mb-4">
                   <Plus className="h-6 w-6" />
                 </div>

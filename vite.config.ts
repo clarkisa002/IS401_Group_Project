@@ -10,7 +10,7 @@ export default defineConfig(({ mode }) => ({
     host: "::",
     port: 8080,
     fs: {
-      allow: ["./frontend", "./shared"],
+      allow: [".", "./frontend", "./shared"],
       deny: [".env", ".env.*", "*.{crt,pem}", "**/.git/**", "server/**"],
     },
   },
@@ -24,6 +24,9 @@ export default defineConfig(({ mode }) => ({
       "@": path.resolve(__dirname, "./frontend/client"),
       "@shared": path.resolve(__dirname, "./shared"),
     },
+  },
+  optimizeDeps: {
+    include: ["lucide-react"],
   },
 }));
 
