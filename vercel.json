@@ -1,5 +1,5 @@
 {
-  "buildCommand": "pnpm run build:client && ([ -d dist/spa ] && mv dist/spa spa || true)",
+  "buildCommand": "pnpm run build:client",
   "outputDirectory": "spa",
   "installCommand": "pnpm install --no-frozen-lockfile"
 }

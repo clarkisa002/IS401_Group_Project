@@ -16,7 +16,7 @@ export default defineConfig(({ mode }) => ({
   },
   publicDir: "frontend/public",
   build: {
-    outDir: "spa",
+    outDir: "../spa",
   },
   plugins: [react(), expressPlugin()],
   resolve: {
