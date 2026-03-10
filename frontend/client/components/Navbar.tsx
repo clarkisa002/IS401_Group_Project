@@ -4,6 +4,7 @@ import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useUserData } from "@/hooks/use-user-data";
+import { useAuth } from "@/hooks/use-auth";
 
 const navItems = [
   { name: "Dashboard", path: "/dashboard", icon: LayoutDashboard },
@@ -16,6 +17,10 @@ const navItems = [
 export function Navbar() {
   const location = useLocation();
   const { data } = useUserData();
+  const { user, isAuthenticated, logout } = useAuth();
+
+  const displayName = user?.name || data?.name || "Guest";
+  const displayInitial = user?.name?.[0] || data?.name?.[0] || "U";
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -52,18 +57,37 @@ export function Navbar() {
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-3 pr-2 md:border-r">
             <div className="hidden flex-col items-end text-right md:flex">
-              <span className="text-sm font-semibold leading-none">{data?.name || "Guest"}</span>
+              <span className="text-sm font-semibold leading-none">{displayName}</span>
               <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider mt-1">
                 Score: {data?.readinessScore || 0}
               </span>
             </div>
             <Avatar className="h-10 w-10 border-2 border-primary/20 ring-2 ring-background ring-offset-2 ring-offset-primary/10">
               <AvatarFallback className="bg-primary text-primary-foreground font-bold">
-                {data?.name?.[0] || "U"}
+                {displayInitial}
               </AvatarFallback>
             </Avatar>
           </div>
-          
+
+          <div className="hidden md:flex items-center gap-2">
+            {isAuthenticated ? (
+              <>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="text-xs"
+                  onClick={logout}
+                >
+                  Sign out
+                </Button>
+              </>
+            ) : (
+              <Button asChild size="sm" className="text-xs">
+                <Link to="/login">Sign in</Link>
+              </Button>
+            )}
+          </div>
+
           <Button variant="ghost" size="icon" className="md:hidden rounded-full h-10 w-10 border border-border">
             <Menu className="h-5 w-5" />
           </Button>
@@ -72,3 +96,4 @@ export function Navbar() {
     </header>
   );
 }
+

@@ -1,11 +1,13 @@
 import { useState, useEffect } from "react";
 import { UserData, DEMO_DATA } from "@/lib/types";
+import { useAuth } from "@/hooks/use-auth";
 
 const STORAGE_KEY = "home_ownership_tracker_data";
 
 export function useUserData() {
   const [data, setData] = useState<UserData | null>(null);
   const [loading, setLoading] = useState(true);
+  const { user } = useAuth();
 
   useEffect(() => {
     const savedData = localStorage.getItem(STORAGE_KEY);
@@ -57,5 +59,13 @@ export function useUserData() {
     reader.readAsText(file);
   };
 
-  return { data, loading, updateData, resetToDemo, exportData, importData };
+  const effectiveData =
+    data && user
+      ? {
+          ...data,
+          name: user.name,
+        }
+      : data;
+
+  return { data: effectiveData, loading, updateData, resetToDemo, exportData, importData };
 }

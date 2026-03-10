@@ -13,6 +13,10 @@ import Goals from "./pages/Goals";
 import Spending from "./pages/Spending";
 import Education from "./pages/Education";
 import NotFound from "./pages/NotFound";
+import Login from "./pages/Login";
+import Logout from "./pages/Logout";
+import { AuthProvider } from "@/hooks/use-auth";
+import { RequireAuth } from "@/components/RequireAuth";
 
 const queryClient = new QueryClient();
 
@@ -22,16 +26,62 @@ const App = () => (
       <Toaster />
       <Sonner />
       <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Index />} />
-          <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/progress" element={<Progress />} />
-          <Route path="/goals" element={<Goals />} />
-          <Route path="/spending" element={<Spending />} />
-          <Route path="/education" element={<Education />} />
-          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-          <Route path="*" element={<NotFound />} />
-        </Routes>
+        <AuthProvider>
+          <Routes>
+            <Route
+              path="/"
+              element={
+                <RequireAuth>
+                  <Index />
+                </RequireAuth>
+              }
+            />
+            <Route path="/login" element={<Login />} />
+            <Route path="/logout" element={<Logout />} />
+            <Route
+              path="/dashboard"
+              element={
+                <RequireAuth>
+                  <Dashboard />
+                </RequireAuth>
+              }
+            />
+            <Route
+              path="/progress"
+              element={
+                <RequireAuth>
+                  <Progress />
+                </RequireAuth>
+              }
+            />
+            <Route
+              path="/goals"
+              element={
+                <RequireAuth>
+                  <Goals />
+                </RequireAuth>
+              }
+            />
+            <Route
+              path="/spending"
+              element={
+                <RequireAuth>
+                  <Spending />
+                </RequireAuth>
+              }
+            />
+            <Route
+              path="/education"
+              element={
+                <RequireAuth>
+                  <Education />
+                </RequireAuth>
+              }
+            />
+            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </AuthProvider>
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>
