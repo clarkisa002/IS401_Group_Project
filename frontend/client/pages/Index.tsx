@@ -50,27 +50,22 @@ export default function Index() {
                     Explore Roadmap to Own <ArrowRight className="h-5 w-5" />
                   </Link>
                 </Button>
-                <Button asChild variant="outline" size="lg" className="h-14 px-8 text-lg">
-                  <Link to="/education" className="gap-2">
-                    Learn More
-                  </Link>
-                </Button>
               </div>
 
               <div className="grid grid-cols-2 gap-6 pt-4 sm:grid-cols-4">
-                <Link to="/education" className="group flex flex-col items-center gap-3 text-center">
+                <Link to="/dashboard" className="group flex flex-col items-center gap-3 text-center">
                   <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white shadow-md transition-all group-hover:scale-110 group-hover:shadow-lg">
                     <Users className="h-6 w-6 text-blue-500" />
                   </div>
                   <span className="text-sm font-medium">Join Our Home</span>
                 </Link>
-                <Link to="/education" className="group flex flex-col items-center gap-3 text-center">
+                <Link to="/dashboard" className="group flex flex-col items-center gap-3 text-center">
                   <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white shadow-md transition-all group-hover:scale-110 group-hover:shadow-lg">
                     <Lightbulb className="h-6 w-6 text-amber-500" />
                   </div>
                   <span className="text-sm font-medium">Why Saving Leads</span>
                 </Link>
-                <Link to="/education" className="group flex flex-col items-center gap-3 text-center">
+                <Link to="/dashboard" className="group flex flex-col items-center gap-3 text-center">
                   <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white shadow-md transition-all group-hover:scale-110 group-hover:shadow-lg">
                     <Home className="h-6 w-6 text-emerald-500" />
                   </div>

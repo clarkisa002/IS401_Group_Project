@@ -1,7 +1,7 @@
 import { ReactNode } from "react";
 import { Navbar } from "./Navbar";
 import { Link, useLocation } from "react-router-dom";
-import { ChevronRight, Home, LayoutDashboard, TrendingUp, Target, PieChart, GraduationCap, Plus } from "lucide-react";
+import { ChevronRight, Home, LayoutDashboard, TrendingUp, Target, PieChart, Plus } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface LayoutProps {
@@ -13,7 +13,6 @@ const mobileNavItems = [
   { name: "Progress", path: "/progress", icon: TrendingUp },
   { name: "Goals", path: "/goals", icon: Target },
   { name: "Spend", path: "/spending", icon: PieChart },
-  { name: "Learn", path: "/education", icon: GraduationCap },
 ];
 
 export function Layout({ children }: LayoutProps) {
@@ -106,7 +105,6 @@ export function Layout({ children }: LayoutProps) {
           <div>
             <h4 className="mb-4 text-sm font-semibold uppercase tracking-wider text-foreground/80">Support</h4>
             <ul className="space-y-2 text-sm text-muted-foreground">
-              <li><Link to="/education" className="hover:text-primary transition-colors">Financial Literacy</Link></li>
               <li><button className="hover:text-primary transition-colors">Help Center</button></li>
               <li><button className="hover:text-primary transition-colors">Privacy Policy</button></li>
               <li><button className="hover:text-primary transition-colors">Terms of Service</button></li>

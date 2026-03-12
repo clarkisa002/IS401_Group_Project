@@ -1,5 +1,5 @@
 import { Link, useLocation } from "react-router-dom";
-import { LayoutDashboard, Target, TrendingUp, PieChart, GraduationCap, Home, Menu, User } from "lucide-react";
+import { LayoutDashboard, Target, TrendingUp, PieChart, Home, Menu, User } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -11,7 +11,6 @@ const navItems = [
   { name: "Progress", path: "/progress", icon: TrendingUp },
   { name: "Goals", path: "/goals", icon: Target },
   { name: "Spending", path: "/spending", icon: PieChart },
-  { name: "Education", path: "/education", icon: GraduationCap },
 ];
 
 export function Navbar() {

@@ -1,3 +1,4 @@
+import { Link } from "react-router-dom";
 import { Layout } from "@/components/Layout";
 import { useUserData } from "@/hooks/use-user-data";
 import { 
@@ -221,7 +222,7 @@ export default function ProgressPage() {
                   Increasing your monthly savings by just **$200** could shave **6 months** off your timeline.
                 </p>
                 <Button variant="link" className="p-0 h-auto text-xs font-bold" asChild>
-                  <a href="/education">Learn how to save more <ChevronRight className="h-3 w-3" /></a>
+                  <Link to="/dashboard">View your roadmap <ChevronRight className="h-3 w-3" /></Link>
                 </Button>
               </div>
 
