@@ -1,7 +1,10 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from "react";
 
+const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:3000";
+
 interface AuthUser {
-  username: string;
+  user_id: number;
+  email: string;
   name: string;
 }
 
@@ -9,7 +12,7 @@ interface AuthContextValue {
   user: AuthUser | null;
   isAuthenticated: boolean;
   loading: boolean;
-  login: (username: string, password: string) => Promise<void>;
+  login: (email: string, password: string) => Promise<void>;
   logout: () => void;
 }
 
@@ -29,7 +32,12 @@ export function AuthProvider({ children }: AuthProviderProps) {
     const saved = localStorage.getItem(AUTH_STORAGE_KEY);
     if (saved) {
       try {
-        setUser(JSON.parse(saved));
+        const parsed = JSON.parse(saved);
+        if (parsed.user_id && parsed.email && parsed.name) {
+          setUser(parsed);
+        } else {
+          localStorage.removeItem(AUTH_STORAGE_KEY);
+        }
       } catch {
         setUser(null);
         localStorage.removeItem(AUTH_STORAGE_KEY);
@@ -38,20 +46,28 @@ export function AuthProvider({ children }: AuthProviderProps) {
     setLoading(false);
   }, []);
 
-  const login = async (username: string, _password: string) => {
-    // In a real app, call your backend here.
-    // For now, accept any non-empty credentials.
-    const trimmedUsername = username.trim();
-    if (!trimmedUsername) {
-      throw new Error("Please enter a valid username.");
+  const login = async (email: string, password: string) => {
+    const trimmedEmail = email.trim();
+    if (!trimmedEmail || !password) {
+      throw new Error("Please enter your email and password.");
     }
 
-    const nameFromUsername = trimmedUsername || "Homeowner";
-    const authUser: AuthUser = {
-      username: trimmedUsername,
-      name: nameFromUsername.charAt(0).toUpperCase() + nameFromUsername.slice(1),
-    };
+    const res = await fetch(`${API_BASE}/api/auth/login`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email: trimmedEmail, password }),
+    });
 
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) {
+      throw new Error(data.error || "Invalid email or password.");
+    }
+
+    const authUser: AuthUser = {
+      user_id: data.user_id,
+      email: data.email,
+      name: data.name || data.email,
+    };
     setUser(authUser);
     localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(authUser));
   };

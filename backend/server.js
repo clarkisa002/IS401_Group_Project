@@ -7,6 +7,7 @@
 require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
+const bcrypt = require("bcrypt");
 const { pool } = require("./db");
 
 const app = express();
@@ -18,6 +19,46 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // ---------- Routes ----------
+
+/**
+ * POST /api/auth/login - Authenticate user with email and password
+ * Body: { email: string, password: string }
+ * Returns: { user_id, email, first_name, last_name, name }
+ */
+app.post("/api/auth/login", async (req, res) => {
+  try {
+    const { email, password } = req.body;
+    if (!email || !password) {
+      return res.status(400).json({ error: "Email and password are required" });
+    }
+
+    const userResult = await pool.query(
+      "SELECT u.user_id, u.email, u.first_name, u.last_name, a.password_hash FROM users u JOIN authentication a ON u.user_id = a.user_id WHERE u.email = $1",
+      [email.trim().toLowerCase()]
+    );
+    if (userResult.rows.length === 0) {
+      return res.status(401).json({ error: "Invalid email or password" });
+    }
+
+    const user = userResult.rows[0];
+    const valid = await bcrypt.compare(password, user.password_hash);
+    if (!valid) {
+      return res.status(401).json({ error: "Invalid email or password" });
+    }
+
+    const response = {
+      user_id: user.user_id,
+      email: user.email,
+      first_name: user.first_name,
+      last_name: user.last_name,
+      name: `${user.first_name} ${user.last_name}`.trim() || user.email,
+    };
+    res.json(response);
+  } catch (err) {
+    console.error("Login error:", err.message);
+    res.status(500).json({ error: "Failed to sign in. Please try again." });
+  }
+});
 
 /**
  * GET /api/users - Fetches all users from the database

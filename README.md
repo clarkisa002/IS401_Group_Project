@@ -88,12 +88,12 @@ Feel free to let me know if you'd like to adjust the supported OS list or Postgr
    \q
    ```
 
-5. **Run the schema and seed scripts** to create tables and populate sample data:
+5. **Run the schema and seed scripts** to create tables and populate sample data (including test users with login credentials):
    ```bash
    psql -U postgres -d dinocamp -f db/schema.sql
    psql -U postgres -d dinocamp -f db/seed.sql
    ```
-   Replace `postgres` with your PostgreSQL username if it differs.
+   Replace `postgres` with your PostgreSQL username if it differs. If you've run an older seed with placeholder hashes, re-run the seed script to get working logins.
 
 6. **Configure environment variables** for the backend. Copy the example file and fill in your credentials:
    ```bash
@@ -127,6 +127,44 @@ You need two terminals — one for the frontend and one for the backend.
 
 3. Open **http://localhost:8080** in your browser to use the application.
 
+---
+
+## Login & Test Accounts
+
+After running the seed script, you can sign in with these test accounts. Use **email** (not username) on the login page.
+
+| Email             | Password   | User   | Notes                                                         |
+|-------------------|------------|--------|---------------------------------------------------------------|
+| `isaac@example.com` | `password123` | Isaac Smith | Main demo user — has goals, expenses, readiness score 68       |
+| `jane@example.com`  | `password123` | Jane Doe    | Second user — has goals, readiness score 45                    |
+
+**Quick start**
+
+1. Ensure both frontend (`npm run dev`) and backend (`npm run backend:dev`) are running.
+2. Go to **http://localhost:8080/login**.
+3. Enter `isaac@example.com` / `password123` and sign in.
+4. You’ll be redirected to the Dashboard. Goals and other data are scoped to the logged-in user.
+
+**Changing passwords**
+
+Passwords are bcrypt-hashed in the database. To generate a new hash for seed data:
+```bash
+cd backend && node scripts/generate-hash.js
+```
+Replace the `password_hash` values in `db/seed.sql` with the output, then re-run the seed script.
+
+---
+
+## Essential Info
+
+- **Frontend**: React SPA on port **8080** (Vite dev server).
+- **Backend API**: Express + PostgreSQL on port **3000**.
+- **Database**: PostgreSQL, database name `dinocamp`. Schema and seed files are in `db/`.
+- **Auth**: Login uses `POST /api/auth/login`. Session is stored in `localStorage` (no JWT yet). `user_id` is used to scope goals and other data.
+- **Environment**: Backend uses `backend/.env` for DB credentials. Optional `VITE_API_URL` in the frontend root `.env` can override the API base URL (default: `http://localhost:3000`).
+
+---
+
 **Verifying the Vertical Slice**
 
 The vertical slice demonstrates a full round-trip: a button in the UI triggers server logic that updates the PostgreSQL database, the server returns the new data, and the UI displays it — persisting after a page refresh.
@@ -135,17 +173,19 @@ The vertical slice demonstrates a full round-trip: a button in the UI triggers s
    - Terminal 1 (frontend): `npm run dev` → http://localhost:8080
    - Terminal 2 (backend): `npm run backend:dev` → http://localhost:3000
 
-2. **Navigate to the Goals page.** Open http://localhost:8080/goals in your browser. The page loads existing goals from the database via `GET /api/goals`. The seed data includes goals like "Down Payment," "Emergency Fund," and "Closing Costs."
+2. **Sign in** (recommended). Go to http://localhost:8080/login and sign in with `isaac@example.com` / `password123`. Goals and other data are user-scoped.
 
-3. **Click "Set Up New Goal" or "Add New Goal."** Either the button in the page header or the dashed card at the end of the goal list opens a dialog form.
+3. **Navigate to the Goals page.** Open http://localhost:8080/goals in your browser. The page loads existing goals from the database via `GET /api/goals`. The seed data includes goals like "Down Payment," "Emergency Fund," and "Closing Costs."
 
-4. **Fill out and submit the form.** Enter a goal name (e.g., "Vacation Home Fund"), a target amount (e.g., 25000), optionally a target date, and click **Create Goal**. The frontend sends a `POST /api/goals` request to the backend, which inserts a new row into the `goals` table and returns the created record.
+4. **Click "Set Up New Goal" or "Add New Goal."** Either the button in the page header or the dashed card at the end of the goal list opens a dialog form.
 
-5. **Verify the new goal appears in the UI.** After submission, the dialog closes and the goal list refreshes automatically. The new goal card appears with a progress bar showing 0% complete.
+5. **Fill out and submit the form.** Enter a goal name (e.g., "Vacation Home Fund"), a target amount (e.g., 25000), optionally a target date, and click **Create Goal**. The frontend sends a `POST /api/goals` request to the backend, which inserts a new row into the `goals` table and returns the created record.
 
-6. **Confirm persistence after refresh.** Reload the page (F5 or Ctrl+R). The new goal still appears because it is fetched from PostgreSQL on every page load — not stored in localStorage.
+6. **Verify the new goal appears in the UI.** After submission, the dialog closes and the goal list refreshes automatically. The new goal card appears with a progress bar showing 0% complete.
 
-7. **Confirm directly in the database (optional).** Run:
+7. **Confirm persistence after refresh.** Reload the page (F5 or Ctrl+R). The new goal still appears because it is fetched from PostgreSQL on every page load — not stored in localStorage.
+
+8. **Confirm directly in the database (optional).** Run:
    ```bash
    psql -U postgres -d dinocamp -c "SELECT goal_id, goal_name, target_amount, current_progress FROM goals ORDER BY goal_id;"
    ```

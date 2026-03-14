@@ -19,7 +19,7 @@ export default function Login() {
   const location = useLocation();
   const state = (location.state || {}) as LocationState;
 
-  const [username, setUsername] = useState("");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -29,7 +29,7 @@ export default function Login() {
     setError(null);
     setSubmitting(true);
     try {
-      await login(username, password);
+      await login(email, password);
       const redirectTo = state.from?.pathname || "/dashboard";
       navigate(redirectTo, { replace: true });
     } catch (err) {
@@ -51,22 +51,22 @@ export default function Login() {
               </div>
               <CardTitle className="text-2xl font-bold tracking-tight">Sign in to HomePath</CardTitle>
               <CardDescription className="text-sm text-muted-foreground">
-                Use any email and password to start exploring your personalized home ownership roadmap.
+                Sign in with your account. See README for test credentials.
               </CardDescription>
             </CardHeader>
             <CardContent>
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div className="space-y-2">
-                  <label htmlFor="username" className="text-sm font-medium">
-                    Username
+                  <label htmlFor="email" className="text-sm font-medium">
+                    Email
                   </label>
                   <Input
-                    id="username"
-                    type="text"
-                    autoComplete="username"
-                    placeholder="yourname"
-                    value={username}
-                    onChange={(e) => setUsername(e.target.value)}
+                    id="email"
+                    type="email"
+                    autoComplete="email"
+                    placeholder="you@example.com"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
                     required
                   />
                 </div>
@@ -97,7 +97,7 @@ export default function Login() {
               <div className="mt-6 flex items-center justify-between text-xs text-muted-foreground">
                 <div className="flex items-center gap-1.5">
                   <Home className="h-3.5 w-3.5" />
-                  <span>New to HomePath? Your demo data will load automatically.</span>
+                  <span>Use seeded test accounts (see README) or create your own.</span>
                 </div>
                 <Link to="/" className="font-medium text-primary hover:underline">
                   Back home

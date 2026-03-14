@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { Layout } from "@/components/Layout";
 import { useUserData } from "@/hooks/use-user-data";
+import { useAuth } from "@/hooks/use-auth";
 import { 
   Target, 
   Home, 
@@ -36,7 +37,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 
-const API_BASE = "http://localhost:3000";
+const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:3000";
 
 interface DbGoal {
   goal_id: number;
@@ -51,6 +52,8 @@ interface DbGoal {
 
 export default function GoalsPage() {
   const { data } = useUserData();
+  const { user } = useAuth();
+  const userId = user?.user_id ?? 1;
   const [dbGoals, setDbGoals] = useState<DbGoal[]>([]);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -62,7 +65,7 @@ export default function GoalsPage() {
 
   const fetchGoals = useCallback(async () => {
     try {
-      const res = await fetch(`${API_BASE}/api/goals`);
+      const res = await fetch(`${API_BASE}/api/goals?user_id=${userId}`);
       if (res.ok) {
         const rows: DbGoal[] = await res.json();
         setDbGoals(rows);
@@ -70,7 +73,7 @@ export default function GoalsPage() {
     } catch (err) {
       console.error("Could not reach backend for goals:", err);
     }
-  }, []);
+  }, [userId]);
 
   useEffect(() => {
     fetchGoals();
@@ -85,6 +88,7 @@ export default function GoalsPage() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
+          user_id: userId,
           goal_name: goalName.trim(),
           goal_type: goalType,
           target_amount: parseFloat(targetAmount),
