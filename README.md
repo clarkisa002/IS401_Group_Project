@@ -208,3 +208,19 @@ The vertical slice demonstrates a full round-trip: a button in the UI triggers s
    ```
    The newly created goal appears as a row in the `goals` table.
 
+
+
+   EARS REQUIREMENTS
+   ---Complete---
+   1. The system shall display a toolbar that allows users to navigate between major sections of the application.
+   2. The system shall display a login interface that allows the user to enter authentication credentials.
+   3. When a user enters valid login credentials, the system shall authenticate the user and grant access to their account.
+   4. While the application is deployed online, the system shall allow users to access the application through a hosted web URL.
+  
+   ---Not Complete---
+   1. When a user views the homepage, the system shall provide personalized real estate preparation recommendations based on the user profile.
+   2. When a user accesses the profile page, the system shall allow the user to update financial or home-buying preference information.
+   3. When a user saves preparation progress, the system shall store and track the user's progress toward purchasing real estate.
+   4. While a user navigates the application, the system shall provide guidance on steps such as budgeting, credit preparation, and mortgage readiness.
+      
+
