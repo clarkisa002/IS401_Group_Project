@@ -1,13 +1,13 @@
-import { defineConfig, Plugin } from "vite";
+import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react-swc";
 import path from "path";
-import { createServer } from "./server";
 
 // https://vitejs.dev/config/
-export default defineConfig(({ mode }) => ({
+export default defineConfig({
   root: "frontend",
+  envDir: path.resolve(__dirname),
   server: {
-    host: "::",
+    host: "localhost",
     port: 8080,
     fs: {
       allow: [".", "./frontend", "./shared"],
@@ -18,7 +18,7 @@ export default defineConfig(({ mode }) => ({
   build: {
     outDir: "../spa",
   },
-  plugins: [react(), expressPlugin()],
+  plugins: [react()],
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./frontend/client"),
@@ -28,17 +28,4 @@ export default defineConfig(({ mode }) => ({
   optimizeDeps: {
     include: ["lucide-react"],
   },
-}));
-
-function expressPlugin(): Plugin {
-  return {
-    name: "express-plugin",
-    apply: "serve", // Only apply during development (serve mode)
-    configureServer(server) {
-      const app = createServer();
-
-      // Add Express app as middleware to Vite dev server
-      server.middlewares.use(app);
-    },
-  };
-}
+});

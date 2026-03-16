@@ -14,6 +14,7 @@ interface AuthContextValue {
   loading: boolean;
   login: (email: string, password: string) => Promise<void>;
   signUp: (email: string, password: string, firstName?: string, lastName?: string) => Promise<void>;
+  loginWithGoogle: () => Promise<void>;
   logout: () => void;
 }
 
@@ -106,6 +107,19 @@ export function AuthProvider({ children }: AuthProviderProps) {
     }
   };
 
+  const loginWithGoogle = async () => {
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: "google",
+      options: {
+        redirectTo: window.location.origin + "/dashboard",
+      },
+    });
+
+    if (error) {
+      throw new Error(error.message || "Failed to sign in with Google.");
+    }
+  };
+
   const logout = async () => {
     await supabase.auth.signOut();
     setUser(null);
@@ -119,6 +133,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
         loading,
         login,
         signUp,
+        loginWithGoogle,
         logout,
       }}
     >
