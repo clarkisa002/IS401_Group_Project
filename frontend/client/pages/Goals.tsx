@@ -36,11 +36,10 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-
-const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:3000";
+import { supabase } from "@/lib/supabase";
 
 interface DbGoal {
-  goal_id: number;
+  goal_id: string;
   goal_name: string;
   goal_type: string;
   target_amount: string;
@@ -53,7 +52,7 @@ interface DbGoal {
 export default function GoalsPage() {
   const { data } = useUserData();
   const { user } = useAuth();
-  const userId = user?.user_id ?? 1;
+  const userId = user?.user_id;
   const [dbGoals, setDbGoals] = useState<DbGoal[]>([]);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -64,14 +63,21 @@ export default function GoalsPage() {
   const [submitError, setSubmitError] = useState<string | null>(null);
 
   const fetchGoals = useCallback(async () => {
+    if (!userId) return;
     try {
-      const res = await fetch(`${API_BASE}/api/goals?user_id=${userId}`);
-      if (res.ok) {
-        const rows: DbGoal[] = await res.json();
-        setDbGoals(rows);
+      const { data: rows, error } = await supabase
+        .from("goals")
+        .select("*")
+        .eq("user_id", userId)
+        .order("created_at", { ascending: false });
+
+      if (!error && rows) {
+        setDbGoals(rows as DbGoal[]);
+      } else if (error) {
+        console.error("Could not fetch goals:", error.message);
       }
     } catch (err) {
-      console.error("Could not reach backend for goals:", err);
+      console.error("Could not reach Supabase for goals:", err);
     }
   }, [userId]);
 
@@ -80,22 +86,23 @@ export default function GoalsPage() {
   }, [fetchGoals]);
 
   const handleSubmit = async () => {
-    if (!goalName.trim() || !targetAmount.trim()) return;
+    if (!goalName.trim() || !targetAmount.trim() || !userId) return;
     setSubmitting(true);
     setSubmitError(null);
     try {
-      const res = await fetch(`${API_BASE}/api/goals`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
+      const { data: newGoal, error } = await supabase
+        .from("goals")
+        .insert({
           user_id: userId,
           goal_name: goalName.trim(),
           goal_type: goalType,
           target_amount: parseFloat(targetAmount),
           target_date: targetDate || null,
-        }),
-      });
-      if (res.ok) {
+        })
+        .select()
+        .single();
+
+      if (!error && newGoal) {
         setGoalName("");
         setGoalType("savings");
         setTargetAmount("");
@@ -103,12 +110,11 @@ export default function GoalsPage() {
         setDialogOpen(false);
         await fetchGoals();
       } else {
-        const data = await res.json().catch(() => ({}));
-        setSubmitError(data.error || "Could not create goal. Please try again.");
+        setSubmitError(error?.message || "Could not create goal. Please try again.");
       }
     } catch (err) {
       console.error("Failed to create goal:", err);
-      setSubmitError("Could not reach the server. Make sure the backend is running.");
+      setSubmitError("Could not reach the server. Make sure Supabase is configured.");
     } finally {
       setSubmitting(false);
     }

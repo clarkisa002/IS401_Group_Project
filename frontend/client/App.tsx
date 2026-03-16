@@ -13,6 +13,7 @@ import Goals from "./pages/Goals";
 import Spending from "./pages/Spending";
 import NotFound from "./pages/NotFound";
 import Login from "./pages/Login";
+import SignUp from "./pages/SignUp";
 import Logout from "./pages/Logout";
 import { AuthProvider } from "@/hooks/use-auth";
 import { RequireAuth } from "@/components/RequireAuth";
@@ -36,6 +37,7 @@ const App = () => (
               }
             />
             <Route path="/login" element={<Login />} />
+            <Route path="/signup" element={<SignUp />} />
             <Route path="/logout" element={<Logout />} />
             <Route
               path="/dashboard"

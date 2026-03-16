@@ -12,14 +12,13 @@ The Home Readiness Planner helps aspiring homeowners move from financial uncerta
 
 **Backend**
 
-* Node.js — JavaScript runtime environment
-* Express — web framework for handling API routes and server logic
-* Netlify Functions — serverless function deployment for backend endpoints
+* Supabase — hosted PostgreSQL, Auth, and REST API (primary)
+* Node.js + Express — optional local backend (see legacy setup below)
 
 **Database**
 
-* PostgreSQL — relational database
-* Custom SQL scripts — used to create and initialize the database schema 
+* Supabase (PostgreSQL) — auth, profiles, goals with Row Level Security
+* Custom SQL scripts — `db/supabase_schema.sql` for Supabase; `db/schema.sql` for local PostgreSQL 
 
 **Tooling & DevOps**
 
@@ -60,25 +59,50 @@ Feel free to let me know if you'd like to adjust the supported OS list or Postgr
 
 **Installation and Setup**
 
+### Option A: Supabase (recommended)
+
 1. **Clone the repository** and navigate into the project folder:
    ```bash
    git clone <repository-url>
    cd IS401_Group_Project
    ```
 
-2. **Install dependencies** from the project root (this installs both frontend and shared packages):
+2. **Install dependencies** from the project root:
    ```bash
-   npm install
+   pnpm install
    ```
 
-3. **Install backend dependencies** separately:
-   ```bash
-   cd backend
-   npm install
-   cd ..
+3. **Create a Supabase project** at [supabase.com](https://supabase.com). In the dashboard:
+   - Go to **SQL Editor** and run the contents of `db/supabase_schema.sql`
+   - Go to **Settings → API** and copy your **Project URL** and **anon public** key
+
+4. **Create a `.env` file** in the project root with:
+   ```
+   VITE_SUPABASE_URL=https://your-project.supabase.co
+   VITE_SUPABASE_ANON_KEY=your-anon-key
    ```
 
-4. **Create the PostgreSQL database**. Open a terminal with `psql` available and run:
+5. **Start the frontend** (no backend needed):
+   ```bash
+   pnpm run dev
+   ```
+   Open **http://localhost:8080**. Sign up at `/signup` or sign in at `/login`.
+
+### Option B: Local PostgreSQL + Express (legacy)
+
+1. **Clone the repository** and navigate into the project folder:
+   ```bash
+   git clone <repository-url>
+   cd IS401_Group_Project
+   ```
+
+2. **Install dependencies** from the project root and backend:
+   ```bash
+   pnpm install
+   cd backend && pnpm install && cd ..
+   ```
+
+3. **Create the PostgreSQL database**. Open a terminal with `psql` available and run:
    ```bash
    psql -U postgres
    ```
@@ -111,36 +135,31 @@ Feel free to let me know if you'd like to adjust the supported OS list or Postgr
 
 **Running the Application**
 
-You need two terminals — one for the frontend and one for the backend.
+**With Supabase:** Run only the frontend:
+```bash
+pnpm run dev
+```
+Open **http://localhost:8080**. Sign up or sign in; goals are stored in Supabase.
 
-1. **Start the frontend** (Vite dev server with the in-process Express API):
-   ```bash
-   npm run dev
-   ```
-   This starts the React frontend at **http://localhost:8080**.
-
-2. **Start the backend** (Express + PostgreSQL API) in a second terminal from the project root:
-   ```bash
-   npm run backend:dev
-   ```
-   This starts the database-connected API server at **http://localhost:3000**.
-
-3. Open **http://localhost:8080** in your browser to use the application.
+**With local backend:** You need two terminals:
+1. **Frontend:** `pnpm run dev` → http://localhost:8080
+2. **Backend:** `pnpm run backend:dev` → http://localhost:3000
 
 ---
 
 ## Login & Test Accounts
 
-After running the seed script, you can sign in with these test accounts. Use **email** (not username) on the login page.
+**Supabase:** Create an account at `/signup`. No seed data needed.
 
-| Email             | Password   | User   | Notes                                                         |
-|-------------------|------------|--------|---------------------------------------------------------------|
-| `isaac@example.com` | `password123` | Isaac Smith | Main demo user — has goals, expenses, readiness score 68       |
-| `jane@example.com`  | `password123` | Jane Doe    | Second user — has goals, readiness score 45                    |
+**Local backend:** After running the seed script, you can sign in with these test accounts.
 
-**Quick start**
+| Email             | Password   | User   |
+|-------------------|------------|--------|
+| `isaac@example.com` | `password123` | Isaac Smith |
+| `jane@example.com`  | `password123` | Jane Doe    |
 
-1. Ensure both frontend (`npm run dev`) and backend (`npm run backend:dev`) are running.
+**Quick start (Supabase):** Run `pnpm run dev`, go to http://localhost:8080/signup to create an account, then sign in.
+
 2. Go to **http://localhost:8080/login**.
 3. Enter `isaac@example.com` / `password123` and sign in.
 4. You’ll be redirected to the Dashboard. Goals and other data are scoped to the logged-in user.
@@ -158,10 +177,8 @@ Replace the `password_hash` values in `db/seed.sql` with the output, then re-run
 ## Essential Info
 
 - **Frontend**: React SPA on port **8080** (Vite dev server).
-- **Backend API**: Express + PostgreSQL on port **3000**.
-- **Database**: PostgreSQL, database name `dinocamp`. Schema and seed files are in `db/`.
-- **Auth**: Login uses `POST /api/auth/login`. Session is stored in `localStorage` (no JWT yet). `user_id` is used to scope goals and other data.
-- **Environment**: Backend uses `backend/.env` for DB credentials. Optional `VITE_API_URL` in the frontend root `.env` can override the API base URL (default: `http://localhost:3000`).
+- **Supabase**: Auth and goals use Supabase. Env vars: `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`.
+- **Local backend** (optional): Express + PostgreSQL on port **3000**. Uses `backend/.env` for DB credentials.
 
 ---
 

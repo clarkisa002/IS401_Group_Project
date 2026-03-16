@@ -1,9 +1,9 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from "react";
-
-const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:3000";
+import { supabase } from "@/lib/supabase";
+import type { Session } from "@supabase/supabase-js";
 
 interface AuthUser {
-  user_id: number;
+  user_id: string;
   email: string;
   name: string;
 }
@@ -13,10 +13,9 @@ interface AuthContextValue {
   isAuthenticated: boolean;
   loading: boolean;
   login: (email: string, password: string) => Promise<void>;
+  signUp: (email: string, password: string, firstName?: string, lastName?: string) => Promise<void>;
   logout: () => void;
 }
-
-const AUTH_STORAGE_KEY = "home_ownership_auth";
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 
@@ -24,26 +23,36 @@ interface AuthProviderProps {
   children: ReactNode;
 }
 
+function sessionToAuthUser(session: Session | null): AuthUser | null {
+  if (!session?.user) return null;
+  const u = session.user;
+  const meta = u.user_metadata || {};
+  const firstName = meta.first_name || "";
+  const lastName = meta.last_name || "";
+  const name = [firstName, lastName].filter(Boolean).join(" ") || u.email || "";
+  return {
+    user_id: u.id,
+    email: u.email ?? "",
+    name,
+  };
+}
+
 export function AuthProvider({ children }: AuthProviderProps) {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const saved = localStorage.getItem(AUTH_STORAGE_KEY);
-    if (saved) {
-      try {
-        const parsed = JSON.parse(saved);
-        if (parsed.user_id && parsed.email && parsed.name) {
-          setUser(parsed);
-        } else {
-          localStorage.removeItem(AUTH_STORAGE_KEY);
-        }
-      } catch {
-        setUser(null);
-        localStorage.removeItem(AUTH_STORAGE_KEY);
-      }
-    }
-    setLoading(false);
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(sessionToAuthUser(session));
+      setLoading(false);
+    });
+
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setUser(sessionToAuthUser(session));
+      setLoading(false);
+    });
+
+    return () => subscription.unsubscribe();
   }, []);
 
   const login = async (email: string, password: string) => {
@@ -52,29 +61,54 @@ export function AuthProvider({ children }: AuthProviderProps) {
       throw new Error("Please enter your email and password.");
     }
 
-    const res = await fetch(`${API_BASE}/api/auth/login`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email: trimmedEmail, password }),
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email: trimmedEmail,
+      password,
     });
 
-    const data = await res.json().catch(() => ({}));
-    if (!res.ok) {
-      throw new Error(data.error || "Invalid email or password.");
+    if (error) {
+      throw new Error(error.message || "Invalid email or password.");
     }
 
-    const authUser: AuthUser = {
-      user_id: data.user_id,
-      email: data.email,
-      name: data.name || data.email,
-    };
-    setUser(authUser);
-    localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(authUser));
+    if (data.session) {
+      setUser(sessionToAuthUser(data.session));
+    }
   };
 
-  const logout = () => {
+  const signUp = async (
+    email: string,
+    password: string,
+    firstName?: string,
+    lastName?: string
+  ) => {
+    const trimmedEmail = email.trim();
+    if (!trimmedEmail || !password) {
+      throw new Error("Please enter your email and password.");
+    }
+
+    const { data, error } = await supabase.auth.signUp({
+      email: trimmedEmail,
+      password,
+      options: {
+        data: {
+          first_name: firstName || "",
+          last_name: lastName || "",
+        },
+      },
+    });
+
+    if (error) {
+      throw new Error(error.message || "Failed to sign up.");
+    }
+
+    if (data.session) {
+      setUser(sessionToAuthUser(data.session));
+    }
+  };
+
+  const logout = async () => {
+    await supabase.auth.signOut();
     setUser(null);
-    localStorage.removeItem(AUTH_STORAGE_KEY);
   };
 
   return (
@@ -84,6 +118,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
         isAuthenticated: !!user,
         loading,
         login,
+        signUp,
         logout,
       }}
     >
@@ -99,4 +134,3 @@ export function useAuth() {
   }
   return ctx;
 }
-
