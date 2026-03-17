@@ -130,7 +130,10 @@ export default function Dashboard() {
           </CardHeader>
           <CardContent className="flex flex-col items-center justify-center py-8">
             <div className="relative mb-10">
-              <svg className="h-72 w-72 md:h-80 md:w-80 -rotate-90 transform">
+              <svg
+                className="h-64 w-64 md:h-72 md:w-72 -rotate-90 transform"
+                viewBox="0 0 192 192"
+              >
                   <circle
                     cx="96"
                     cy="96"
@@ -155,7 +158,7 @@ export default function Dashboard() {
                 />
               </svg>
               <div className="absolute inset-0 flex flex-col items-center justify-center text-center gap-2">
-                <span className={cn("text-7xl md:text-8xl font-black", getScoreColor(data.readinessScore))}>
+                <span className={cn("text-5xl md:text-6xl font-black", getScoreColor(data.readinessScore))}>
                   {data.readinessScore}
                 </span>
                 <span className="text-xs md:text-sm font-bold uppercase tracking-widest text-muted-foreground">
