@@ -120,16 +120,17 @@ export default function Dashboard() {
           </div>
         </header>
 
-        <div className="grid gap-8 lg:grid-cols-3">
-          {/* Main Score Card */}
-          <Card className="lg:col-span-1 overflow-hidden border-none shadow-xl bg-gradient-to-br from-primary/5 to-primary/10">
-            <CardHeader className="text-center pb-2">
-              <CardTitle className="text-xl">Readiness Score</CardTitle>
-              <CardDescription>Based on your current profile</CardDescription>
-            </CardHeader>
-            <CardContent className="flex flex-col items-center justify-center py-6">
-              <div className="relative mb-6">
-                <svg className="h-48 w-48 -rotate-90 transform">
+        {/* Hero Readiness Score (dominant) */}
+        <Card className="overflow-hidden border-none shadow-xl bg-gradient-to-br from-primary/5 to-primary/10">
+          <CardHeader className="text-center pb-4">
+            <CardTitle className="text-2xl md:text-3xl">Your Home Readiness Score</CardTitle>
+            <CardDescription className="text-sm md:text-base">
+              A single view of how prepared you are to buy.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="flex flex-col items-center justify-center py-8">
+            <div className="relative mb-10">
+              <svg className="h-72 w-72 md:h-80 md:w-80 -rotate-90 transform">
                   <circle
                     cx="96"
                     cy="96"
@@ -137,61 +138,68 @@ export default function Dashboard() {
                     fill="none"
                     stroke="currentColor"
                     strokeWidth="12"
-                    className="text-muted/20"
+                  className="text-muted/20"
                   />
-                  <motion.circle
-                    initial={{ strokeDasharray: "0 553" }}
-                    animate={{ strokeDasharray: `${(data.readinessScore / 100) * 553} 553` }}
-                    transition={{ duration: 1.5, ease: "easeOut" }}
-                    cx="96"
-                    cy="96"
-                    r="88"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="12"
-                    strokeLinecap="round"
-                    className={getScoreColor(data.readinessScore)}
-                  />
-                </svg>
-                <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
-                  <span className={cn("text-5xl font-black", getScoreColor(data.readinessScore))}>
-                    {data.readinessScore}
-                  </span>
-                  <span className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Points</span>
-                </div>
+                <motion.circle
+                  initial={{ strokeDasharray: "0 553" }}
+                  animate={{ strokeDasharray: `${(data.readinessScore / 100) * 553} 553` }}
+                  transition={{ duration: 1.5, ease: "easeOut" }}
+                  cx="96"
+                  cy="96"
+                  r="88"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="12"
+                  strokeLinecap="round"
+                  className={getScoreColor(data.readinessScore)}
+                />
+              </svg>
+              <div className="absolute inset-0 flex flex-col items-center justify-center text-center gap-2">
+                <span className={cn("text-7xl md:text-8xl font-black", getScoreColor(data.readinessScore))}>
+                  {data.readinessScore}
+                </span>
+                <span className="text-xs md:text-sm font-bold uppercase tracking-widest text-muted-foreground">
+                  Readiness Points
+                </span>
               </div>
-              
-              <div className={cn("rounded-full px-4 py-1.5 text-sm font-bold text-white shadow-lg", getScoreBg(data.readinessScore))}>
-                {getScoreLabel(data.readinessScore)}
-              </div>
-              
-              <div className="mt-8 w-full space-y-4 rounded-2xl bg-background/50 p-4 backdrop-blur-sm">
-                <p className="text-sm font-medium leading-relaxed text-center italic">
-                  "You're in a great position! Focusing on your debt-to-income ratio could boost your score by 15 points."
-                </p>
-                <Button variant="ghost" className="w-full gap-2 text-primary" size="sm">
-                  View personalized tips <ChevronRight className="h-4 w-4" />
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
+            </div>
 
-          {/* Historical Trend */}
+            <div className={cn("rounded-full px-6 py-2.5 text-sm md:text-base font-bold text-white shadow-lg", getScoreBg(data.readinessScore))}>
+              {getScoreLabel(data.readinessScore)}
+            </div>
+
+            <div className="mt-10 w-full max-w-xl space-y-4 rounded-2xl bg-background/60 p-5 backdrop-blur-sm">
+              <p className="text-sm md:text-base font-medium leading-relaxed text-center italic">
+                "You're in a great position! Focusing on your debt-to-income ratio could boost your score by 15 points."
+              </p>
+              <Button asChild variant="ghost" className="w-full gap-2 text-primary" size="sm">
+                <Link to="/goals">
+                  View personalized tips <ChevronRight className="h-4 w-4" />
+                </Link>
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Historical Trend - now secondary and smaller */}
+        <div className="grid gap-6 pt-6 lg:grid-cols-3 items-start">
           <Card className="lg:col-span-2">
             <CardHeader>
               <div className="flex items-center justify-between">
                 <div>
-                  <CardTitle>Score History</CardTitle>
-                  <CardDescription>Your progress over the last 6 months</CardDescription>
+                  <CardTitle className="text-base md:text-lg">Score History</CardTitle>
+                  <CardDescription className="text-xs md:text-sm">
+                    Your progress over the last 6 months
+                  </CardDescription>
                 </div>
-                <div className="flex h-10 items-center gap-2 rounded-lg border bg-muted/50 px-3">
+                <div className="hidden md:flex h-8 items-center gap-2 rounded-lg border bg-muted/50 px-3">
                   <div className="h-2 w-2 rounded-full bg-primary" />
-                  <span className="text-xs font-semibold">Ready Score</span>
+                  <span className="text-[10px] font-semibold uppercase tracking-wider">Ready Score</span>
                 </div>
               </div>
             </CardHeader>
             <CardContent>
-              <div className="h-[300px] w-full">
+              <div className="h-[180px] w-full md:h-[220px]">
                 <ResponsiveContainer width="100%" height="100%">
                   <LineChart data={chartData}>
                     <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
@@ -199,13 +207,13 @@ export default function Dashboard() {
                       dataKey="name" 
                       axisLine={false} 
                       tickLine={false} 
-                      tick={{ fill: '#64748b', fontSize: 12 }}
-                      dy={10}
+                      tick={{ fill: '#64748b', fontSize: 11 }}
+                      dy={8}
                     />
                     <YAxis 
                       axisLine={false} 
                       tickLine={false} 
-                      tick={{ fill: '#64748b', fontSize: 12 }}
+                      tick={{ fill: '#64748b', fontSize: 11 }}
                       domain={[0, 100]}
                     />
                     <Tooltip 
@@ -216,13 +224,37 @@ export default function Dashboard() {
                       type="monotone" 
                       dataKey="score" 
                       stroke="hsl(var(--primary))" 
-                      strokeWidth={4} 
-                      dot={{ r: 6, fill: 'hsl(var(--primary))', strokeWidth: 3, stroke: '#fff' }}
-                      activeDot={{ r: 8, strokeWidth: 0 }}
+                      strokeWidth={3} 
+                      dot={{ r: 4, fill: 'hsl(var(--primary))', strokeWidth: 2, stroke: '#fff' }}
+                      activeDot={{ r: 6, strokeWidth: 0 }}
                     />
                   </LineChart>
                 </ResponsiveContainer>
               </div>
+            </CardContent>
+          </Card>
+
+          {/* Small summary card to sit next to the chart */}
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium">Snapshot</CardTitle>
+              <CardDescription className="text-xs">
+                Quick view of where you stand today.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-3 text-xs md:text-sm">
+              <p>
+                <span className="font-semibold">Readiness:</span>{" "}
+                <span className={getScoreColor(data.readinessScore)}>{data.readinessScore}/100</span>
+              </p>
+              <p>
+                <span className="font-semibold">Savings toward target:</span>{" "}
+                {((data.savings.total / data.savings.target) * 100).toFixed(0)}%
+              </p>
+              <p>
+                <span className="font-semibold">Debt-to-income ratio:</span>{" "}
+                {data.debtToIncomeRatio}%
+              </p>
             </CardContent>
           </Card>
         </div>

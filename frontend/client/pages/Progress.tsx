@@ -222,7 +222,7 @@ export default function ProgressPage() {
                   Increasing your monthly savings by just **$200** could shave **6 months** off your timeline.
                 </p>
                 <Button variant="link" className="p-0 h-auto text-xs font-bold" asChild>
-                  <Link to="/dashboard">View your roadmap <ChevronRight className="h-3 w-3" /></Link>
+                  <Link to="/goals">View your roadmap <ChevronRight className="h-3 w-3" /></Link>
                 </Button>
               </div>
 
