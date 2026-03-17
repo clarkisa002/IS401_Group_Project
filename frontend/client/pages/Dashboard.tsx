@@ -130,23 +130,26 @@ export default function Dashboard() {
           </CardHeader>
           <CardContent className="flex flex-col items-center justify-center py-8">
             <div className="relative mb-10">
-              <svg className="h-72 w-72 md:h-80 md:w-80 -rotate-90 transform">
-                  <circle
-                    cx="96"
-                    cy="96"
-                    r="88"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="12"
+              <svg
+                className="h-64 w-64 md:h-72 md:w-72 -rotate-90 transform"
+                viewBox="0 0 192 192"
+              >
+                <circle
+                  cx="96"
+                  cy="96"
+                  r="80"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="12"
                   className="text-muted/20"
-                  />
+                />
                 <motion.circle
                   initial={{ strokeDasharray: "0 553" }}
                   animate={{ strokeDasharray: `${(data.readinessScore / 100) * 553} 553` }}
                   transition={{ duration: 1.5, ease: "easeOut" }}
                   cx="96"
                   cy="96"
-                  r="88"
+                  r="80"
                   fill="none"
                   stroke="currentColor"
                   strokeWidth="12"
@@ -154,8 +157,8 @@ export default function Dashboard() {
                   className={getScoreColor(data.readinessScore)}
                 />
               </svg>
-              <div className="absolute inset-0 flex flex-col items-center justify-center text-center gap-2">
-                <span className={cn("text-7xl md:text-8xl font-black", getScoreColor(data.readinessScore))}>
+              <div className="absolute inset-0 flex flex-col items-center justify-center text-center gap-1">
+                <span className={cn("text-6xl md:text-7xl font-black", getScoreColor(data.readinessScore))}>
                   {data.readinessScore}
                 </span>
                 <span className="text-xs md:text-sm font-bold uppercase tracking-widest text-muted-foreground">
