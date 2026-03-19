@@ -2,14 +2,11 @@ import { Layout } from "@/components/Layout";
 import { useUserData } from "@/hooks/use-user-data";
 import { Link } from "react-router-dom";
 import {
-  TrendingUp, 
-  CreditCard, 
-  Wallet, 
+  TrendingUp,
+  Wallet,
   ArrowUpRight, 
-  Users, 
-  Briefcase, 
+  Users,
   Info,
-  ChevronRight,
   Download,
   RefreshCcw
 } from "lucide-react";
@@ -20,10 +17,7 @@ import {
   XAxis, 
   YAxis, 
   Tooltip, 
-  CartesianGrid,
-  Cell,
-  PieChart,
-  Pie
+  CartesianGrid
 } from "recharts";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -36,6 +30,20 @@ export default function Dashboard() {
   const { data, resetToDemo, exportData } = useUserData();
 
   if (!data) return null;
+
+  const savingsProgress =
+    data.savings.target > 0 ? (data.savings.total / data.savings.target) * 100 : 0;
+
+  const nextGoalDeadline = data.goals
+    .filter((g) => Boolean(g.deadline))
+    .sort((a, b) => new Date(a.deadline).getTime() - new Date(b.deadline).getTime())[0]?.deadline;
+
+  const nextDeadlineText = nextGoalDeadline
+    ? new Date(nextGoalDeadline).toLocaleDateString(undefined, {
+        year: "numeric",
+        month: "short",
+      })
+    : null;
 
   const getScoreColor = (score: number) => {
     if (score >= 70) return "text-emerald-500";
@@ -60,54 +68,31 @@ export default function Dashboard() {
     score: h.score,
   }));
 
-  const readinessMetrics = [
-    {
-      title: "Credit Score Impact",
-      value: data.creditScore,
-      target: 850,
-      percentage: (data.creditScore / 850) * 100,
-      icon: CreditCard,
-      color: "blue",
-      description: "A higher credit score unlocks lower mortgage rates."
-    },
-    {
-      title: "Savings Progress",
-      value: `$${(data.savings.total / 1000).toFixed(1)}k`,
-      target: `$${(data.savings.target / 1000).toFixed(0)}k`,
-      percentage: (data.savings.total / data.savings.target) * 100,
-      icon: Wallet,
-      color: "emerald",
-      description: "Targeting 20% down payment + closing costs."
-    },
-    {
-      title: "DTI Ratio",
-      value: `${data.debtToIncomeRatio}%`,
-      target: "36%",
-      percentage: Math.max(0, 100 - (data.debtToIncomeRatio / 36) * 100),
-      icon: TrendingUp,
-      color: "amber",
-      description: "Debt-to-income ratio should ideally be below 36%."
-    },
-    {
-      title: "Income Stability",
-      value: `${data.incomeStability}%`,
-      target: "100%",
-      percentage: data.incomeStability,
-      icon: Briefcase,
-      color: "purple",
-      description: "Lenders look for 2+ years of consistent employment."
-    }
-  ];
-
   return (
     <Layout>
       <div className="container py-8 space-y-8">
-        <header className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight">Financial Readiness</h1>
-            <p className="text-muted-foreground">Detailed breakdown of your path to home ownership.</p>
+        <header className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+          <div className="space-y-2">
+            <div className="flex items-center gap-3">
+              <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
+              <div
+                className={cn(
+                  "rounded-full border bg-background/60 px-3 py-1.5 text-xs font-bold uppercase tracking-wider",
+                  data.readinessScore >= 70
+                    ? "border-emerald-500/20 text-emerald-600"
+                    : data.readinessScore >= 40
+                      ? "border-amber-500/20 text-amber-600"
+                      : "border-destructive/20 text-destructive"
+                )}
+              >
+                Readiness: {data.readinessScore}/100
+              </div>
+            </div>
+            <p className="text-muted-foreground">
+              A clean view of what matters now: your readiness score, trends, and next actions.
+            </p>
           </div>
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-wrap gap-2 md:justify-end">
             <Button variant="outline" size="sm" onClick={resetToDemo} className="gap-2">
               <RefreshCcw className="h-4 w-4" /> Reset Demo
             </Button>
@@ -120,74 +105,121 @@ export default function Dashboard() {
           </div>
         </header>
 
-        {/* Hero Readiness Score (dominant) */}
-        <Card className="overflow-hidden border-none shadow-xl bg-gradient-to-br from-primary/5 to-primary/10">
-          <CardHeader className="text-center pb-4">
-            <CardTitle className="text-2xl md:text-3xl">Your Home Readiness Score</CardTitle>
-            <CardDescription className="text-sm md:text-base">
-              A single view of how prepared you are to buy.
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="flex flex-col items-center justify-center py-8">
-            <div className="relative mb-10">
-              <svg
-                className="h-64 w-64 md:h-72 md:w-72 -rotate-90 transform"
-                viewBox="0 0 192 192"
-              >
-                  <circle
-                    cx="96"
-                    cy="96"
-                    r="88"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="12"
-                  className="text-muted/20"
-                  />
-                <motion.circle
-                  initial={{ strokeDasharray: "0 553" }}
-                  animate={{ strokeDasharray: `${(data.readinessScore / 100) * 553} 553` }}
-                  transition={{ duration: 1.5, ease: "easeOut" }}
-                  cx="96"
-                  cy="96"
-                  r="88"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="12"
-                  strokeLinecap="round"
-                  className={getScoreColor(data.readinessScore)}
-                />
-              </svg>
-              <div className="absolute inset-0 flex flex-col items-center justify-center text-center gap-2">
-                <span className={cn("text-5xl md:text-6xl font-black", getScoreColor(data.readinessScore))}>
-                  {data.readinessScore}
-                </span>
-                <span className="text-xs md:text-sm font-bold uppercase tracking-widest text-muted-foreground">
-                  Readiness Points
-                </span>
+        {/* Readiness Score (primary focal point) */}
+        <Card className="overflow-hidden border border-primary/10 shadow-xl bg-gradient-to-br from-primary/8 via-primary/5 to-transparent">
+          <CardContent className="p-8 md:p-10">
+            <div className="grid gap-8 lg:grid-cols-12 lg:items-center">
+              <div className="lg:col-span-5">
+                <div className="space-y-2">
+                  <div className="inline-flex items-center gap-2 rounded-full border bg-background/60 px-3 py-1.5 text-xs font-bold uppercase tracking-wider">
+                    <span
+                      className={cn(
+                        "h-2 w-2 rounded-full",
+                        data.readinessScore >= 70
+                          ? "bg-emerald-500"
+                          : data.readinessScore >= 40
+                            ? "bg-amber-500"
+                            : "bg-destructive"
+                      )}
+                    />
+                    Home Readiness
+                  </div>
+                  <h2 className="text-2xl md:text-3xl font-bold tracking-tight">Your Home Readiness Score</h2>
+                  <p className="text-muted-foreground">Your single readiness number, driven by credit and savings.</p>
+                </div>
               </div>
-            </div>
 
-            <div className={cn("rounded-full px-6 py-2.5 text-sm md:text-base font-bold text-white shadow-lg", getScoreBg(data.readinessScore))}>
-              {getScoreLabel(data.readinessScore)}
-            </div>
+              <div className="lg:col-span-7 flex justify-center">
+                <div className="flex flex-col items-center text-center">
+                  <div className="relative w-[260px] h-[260px] md:w-[280px] md:h-[280px]">
+                    <svg
+                      viewBox="0 0 192 192"
+                      preserveAspectRatio="xMidYMid meet"
+                      className="absolute inset-0 h-full w-full -rotate-90"
+                      role="img"
+                      aria-label={`Readiness score ${data.readinessScore} out of 100`}
+                      style={{ transformOrigin: "50% 50%" }}
+                    >
+                      <circle
+                        cx="96"
+                        cy="96"
+                        r="88"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="12"
+                        className="text-muted/20"
+                      />
+                      <motion.circle
+                        initial={{ strokeDasharray: "0 553" }}
+                        animate={{ strokeDasharray: `${(data.readinessScore / 100) * 553} 553` }}
+                        transition={{ duration: 1.5, ease: "easeOut" }}
+                        cx="96"
+                        cy="96"
+                        r="88"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="12"
+                        strokeLinecap="round"
+                        className={getScoreColor(data.readinessScore)}
+                      />
+                    </svg>
 
-            <div className="mt-10 w-full max-w-xl space-y-4 rounded-2xl bg-background/60 p-5 backdrop-blur-sm">
-              <p className="text-sm md:text-base font-medium leading-relaxed text-center italic">
-                "You're in a great position! Focusing on your debt-to-income ratio could boost your score by 15 points."
-              </p>
-              <Button asChild variant="ghost" className="w-full gap-2 text-primary" size="sm">
-                <Link to="/goals">
-                  View personalized tips <ChevronRight className="h-4 w-4" />
-                </Link>
-              </Button>
+                    <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
+                      <span className={cn("text-7xl md:text-8xl font-black", getScoreColor(data.readinessScore))}>
+                        {data.readinessScore}
+                      </span>
+                      <span className="mt-1 text-xs md:text-sm font-bold uppercase tracking-widest text-muted-foreground">
+                        / 100
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="mt-6 space-y-3">
+                    <div
+                      className={cn(
+                        "rounded-full px-6 py-2.5 text-sm md:text-base font-bold text-white shadow-lg w-fit",
+                        getScoreBg(data.readinessScore)
+                      )}
+                    >
+                      {getScoreLabel(data.readinessScore)}
+                    </div>
+                    <Progress value={data.readinessScore} className="h-2" />
+                  </div>
+                </div>
+              </div>
             </div>
           </CardContent>
         </Card>
 
         {/* Historical Trend - now secondary and smaller */}
-        <div className="grid gap-6 pt-6 lg:grid-cols-3 items-start">
-          <Card className="lg:col-span-2">
-            <CardHeader>
+        <div className="grid gap-8 lg:grid-cols-12 items-start">
+          <Card className="lg:col-span-4 h-full">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium">Saving Progress</CardTitle>
+              <CardDescription className="text-xs">
+                How close you are to your savings target.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="flex h-[180px] md:h-[220px] flex-col justify-center space-y-3 text-xs md:text-sm">
+              <p>
+                <span className="font-semibold text-emerald-600">Toward target:</span>{" "}
+                <span className="font-bold text-emerald-700">
+                  {Math.max(0, Math.min(100, Math.round(savingsProgress)))}%
+                </span>
+              </p>
+              <p>
+                <span className="font-semibold">Saved:</span>{" "}
+                <span className="font-medium">${data.savings.total.toLocaleString()}</span>
+              </p>
+              <p>
+                <span className="font-semibold">Target:</span>{" "}
+                <span className="font-medium">${data.savings.target.toLocaleString()}</span>
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card className="lg:col-span-8 h-full">
+            <CardHeader className="pb-2">
               <div className="flex items-center justify-between">
                 <div>
                   <CardTitle className="text-base md:text-lg">Score History</CardTitle>
@@ -236,72 +268,6 @@ export default function Dashboard() {
               </div>
             </CardContent>
           </Card>
-
-          {/* Small summary card to sit next to the chart */}
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium">Snapshot</CardTitle>
-              <CardDescription className="text-xs">
-                Quick view of where you stand today.
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-3 text-xs md:text-sm">
-              <p>
-                <span className="font-semibold">Readiness:</span>{" "}
-                <span className={getScoreColor(data.readinessScore)}>{data.readinessScore}/100</span>
-              </p>
-              <p>
-                <span className="font-semibold">Savings toward target:</span>{" "}
-                {((data.savings.total / data.savings.target) * 100).toFixed(0)}%
-              </p>
-              <p>
-                <span className="font-semibold">Debt-to-income ratio:</span>{" "}
-                {data.debtToIncomeRatio}%
-              </p>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Breakdown Metrics */}
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-          {readinessMetrics.map((metric, i) => (
-            <Card key={i} className="group relative overflow-hidden transition-all hover:shadow-md">
-              <CardHeader className="pb-2">
-                <div className="flex items-center justify-between">
-                  <div className={cn(
-                    "rounded-lg p-2 transition-colors",
-                    metric.color === 'blue' ? "bg-blue-100 text-blue-600" :
-                    metric.color === 'emerald' ? "bg-emerald-100 text-emerald-600" :
-                    metric.color === 'amber' ? "bg-amber-100 text-amber-600" : "bg-purple-100 text-purple-600"
-                  )}>
-                    <metric.icon className="h-5 w-5" />
-                  </div>
-                  <UITooltip>
-                    <TooltipTrigger asChild>
-                      <Info className="h-4 w-4 text-muted-foreground cursor-help" />
-                    </TooltipTrigger>
-                    <TooltipContent className="max-w-[200px]">
-                      {metric.description}
-                    </TooltipContent>
-                  </UITooltip>
-                </div>
-                <CardTitle className="mt-4 text-sm font-medium">{metric.title}</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="flex items-baseline gap-2">
-                  <span className="text-2xl font-bold">{metric.value}</span>
-                  <span className="text-xs text-muted-foreground">/ Target {metric.target}</span>
-                </div>
-                <div className="mt-4 space-y-2">
-                  <Progress value={metric.percentage} className="h-2" />
-                  <div className="flex justify-between text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
-                    <span>Current</span>
-                    <span>{metric.percentage.toFixed(0)}%</span>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
         </div>
 
         {/* Gamification: Achievements & Streak */}
@@ -335,10 +301,10 @@ export default function Dashboard() {
             </CardContent>
           </Card>
 
-          <Card className="bg-gradient-to-br from-orange-500 to-red-600 text-white border-none shadow-lg shadow-orange-500/20">
+          <Card className="bg-gradient-to-br from-orange-500/10 to-red-600/10 border border-orange-500/20 text-foreground shadow-sm">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <TrendingUp className="h-5 w-5" />
+                <TrendingUp className="h-5 w-5 text-orange-500" />
                 Saving Streak
               </CardTitle>
             </CardHeader>
@@ -354,14 +320,22 @@ export default function Dashboard() {
         </div>
 
         {/* Call to Action Section */}
-        <Card className="bg-primary text-primary-foreground">
+        <Card className="bg-primary/5 border border-primary/20">
           <CardContent className="flex flex-col md:flex-row items-center justify-between p-8 gap-6 text-center md:text-left">
             <div className="space-y-2">
-              <h3 className="text-2xl font-bold italic font-serif">"The best time to plant a tree was 20 years ago. The second best time is now."</h3>
-              <p className="text-primary-foreground/80">You've reached <span className="font-bold text-white">68%</span> of your goal. Keep up the momentum!</p>
+              <h3 className="text-2xl font-bold italic font-serif text-foreground">
+                "The best time to plant a tree was 20 years ago. The second best time is now."
+              </h3>
+              <p className="text-muted-foreground">
+                You've reached{" "}
+                <span className="font-bold text-foreground">
+                  {Math.max(0, Math.min(100, Math.round(savingsProgress)))}%
+                </span>{" "}
+                of your savings target. Keep up the momentum{nextDeadlineText ? ` until ${nextDeadlineText}` : ""}!
+              </p>
             </div>
-            <Button size="lg" variant="secondary" className="h-12 px-8 font-bold shadow-lg" asChild>
-              <Link to="/progress">Track Current Progress <ArrowUpRight className="ml-2 h-5 w-5" /></Link>
+            <Button size="lg" variant="secondary" className="h-12 px-8 font-bold shadow-sm" asChild>
+              <Link to="/goals">View Goals & Tips <ArrowUpRight className="ml-2 h-5 w-5" /></Link>
             </Button>
           </CardContent>
         </Card>

@@ -11,6 +11,7 @@ import Dashboard from "./pages/Dashboard";
 import Progress from "./pages/Progress";
 import Goals from "./pages/Goals";
 import Spending from "./pages/Spending";
+import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
 import Login from "./pages/Login";
 import SignUp from "./pages/SignUp";
@@ -68,6 +69,14 @@ const App = () => (
               element={
                 <RequireAuth>
                   <Spending />
+                </RequireAuth>
+              }
+            />
+            <Route
+              path="/settings"
+              element={
+                <RequireAuth>
+                  <Settings />
                 </RequireAuth>
               }
             />

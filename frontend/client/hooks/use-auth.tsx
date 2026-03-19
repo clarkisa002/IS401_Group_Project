@@ -24,16 +24,50 @@ interface AuthProviderProps {
   children: ReactNode;
 }
 
-function sessionToAuthUser(session: Session | null): AuthUser | null {
+function buildDisplayName(
+  profileFirstName: string,
+  profileLastName: string,
+  metadata: Record<string, unknown>,
+  email: string
+): string {
+  const profileName = [profileFirstName, profileLastName].filter(Boolean).join(" ").trim();
+  if (profileName) return profileName;
+
+  const metaFirstName = String(metadata.first_name ?? metadata.given_name ?? "").trim();
+  const metaLastName = String(metadata.last_name ?? metadata.family_name ?? "").trim();
+  const metadataName = [metaFirstName, metaLastName].filter(Boolean).join(" ").trim();
+  if (metadataName) return metadataName;
+
+  const fullMetadataName = String(metadata.full_name ?? metadata.name ?? "").trim();
+  return fullMetadataName || email;
+}
+
+async function sessionToAuthUser(session: Session | null): Promise<AuthUser | null> {
   if (!session?.user) return null;
   const u = session.user;
-  const meta = u.user_metadata || {};
-  const firstName = meta.first_name || "";
-  const lastName = meta.last_name || "";
-  const name = [firstName, lastName].filter(Boolean).join(" ") || u.email || "";
+
+  let profileFirstName = "";
+  let profileLastName = "";
+
+  // Prefer canonical profile fields saved in the app DB.
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("first_name,last_name")
+    .eq("id", u.id)
+    .maybeSingle();
+
+  if (profile) {
+    profileFirstName = String(profile.first_name ?? "").trim();
+    profileLastName = String(profile.last_name ?? "").trim();
+  }
+
+  const metadata = (u.user_metadata || {}) as Record<string, unknown>;
+  const email = u.email ?? "";
+  const name = buildDisplayName(profileFirstName, profileLastName, metadata, email);
+
   return {
     user_id: u.id,
-    email: u.email ?? "",
+    email,
     name,
   };
 }
@@ -44,12 +78,14 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(sessionToAuthUser(session));
-      setLoading(false);
+      void (async () => {
+        setUser(await sessionToAuthUser(session));
+        setLoading(false);
+      })();
     });
 
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setUser(sessionToAuthUser(session));
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
+      setUser(await sessionToAuthUser(session));
       setLoading(false);
     });
 
@@ -72,7 +108,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
     }
 
     if (data.session) {
-      setUser(sessionToAuthUser(data.session));
+      setUser(await sessionToAuthUser(data.session));
     }
   };
 
@@ -103,7 +139,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
     }
 
     if (data.session) {
-      setUser(sessionToAuthUser(data.session));
+      setUser(await sessionToAuthUser(data.session));
     }
   };
 
