@@ -20,6 +20,7 @@ import {
   CartesianGrid
 } from "recharts";
 import { cn } from "@/lib/utils";
+import { useSessionQuote } from "@/hooks/use-session-quote";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
@@ -28,6 +29,7 @@ import { motion } from "framer-motion";
 
 export default function Dashboard() {
   const { data, resetToDemo, exportData } = useUserData();
+  const quote = useSessionQuote(data?.readinessScore ?? 0);
 
   if (!data) return null;
 
@@ -324,7 +326,7 @@ export default function Dashboard() {
           <CardContent className="flex flex-col md:flex-row items-center justify-between p-8 gap-6 text-center md:text-left">
             <div className="space-y-2">
               <h3 className="text-2xl font-bold italic font-serif text-foreground">
-                "The best time to plant a tree was 20 years ago. The second best time is now."
+                "{quote}"
               </h3>
               <p className="text-muted-foreground">
                 You've reached{" "}

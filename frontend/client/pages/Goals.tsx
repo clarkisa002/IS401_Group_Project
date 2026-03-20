@@ -1,6 +1,8 @@
 import { useState, useEffect, useCallback } from "react";
+import { Link } from "react-router-dom";
 import { Layout } from "@/components/Layout";
 import { useUserData } from "@/hooks/use-user-data";
+import { useSessionQuote } from "@/hooks/use-session-quote";
 import { useAuth } from "@/hooks/use-auth";
 import { 
   Target, 
@@ -12,7 +14,9 @@ import {
   TrendingUp, 
   Calendar,
   AlertCircle,
-  Loader2
+  Loader2,
+  Trash2,
+  ArrowUpRight
 } from "lucide-react";
 import { 
   ResponsiveContainer, 
@@ -36,6 +40,15 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { supabase } from "@/lib/supabase";
 
 interface DbGoal {
@@ -53,6 +66,7 @@ export default function GoalsPage() {
   const { data } = useUserData();
   const { user } = useAuth();
   const userId = user?.user_id;
+  const quote = useSessionQuote(data?.readinessScore ?? 0);
   const [dbGoals, setDbGoals] = useState<DbGoal[]>([]);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -61,6 +75,8 @@ export default function GoalsPage() {
   const [targetAmount, setTargetAmount] = useState("");
   const [targetDate, setTargetDate] = useState("");
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const [goalToDelete, setGoalToDelete] = useState<DbGoal | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   const fetchGoals = useCallback(async () => {
     if (!userId) return;
@@ -120,6 +136,29 @@ export default function GoalsPage() {
     }
   };
 
+  const handleDelete = async () => {
+    if (!goalToDelete || !userId) return;
+    setDeleting(true);
+    try {
+      const { error } = await supabase
+        .from("goals")
+        .delete()
+        .eq("goal_id", goalToDelete.goal_id)
+        .eq("user_id", userId);
+
+      if (!error) {
+        setGoalToDelete(null);
+        await fetchGoals();
+      } else {
+        console.error("Could not delete goal:", error.message);
+      }
+    } catch (err) {
+      console.error("Could not reach Supabase for delete:", err);
+    } finally {
+      setDeleting(false);
+    }
+  };
+
   if (!data) return null;
 
   const allocationData = [
@@ -140,6 +179,24 @@ export default function GoalsPage() {
   return (
     <Layout>
       <div className="container py-8 space-y-8">
+        {/* Quote Card - same as Dashboard */}
+        <Card className="bg-primary/5 border border-primary/20">
+          <CardContent className="flex flex-col md:flex-row items-center justify-between p-8 gap-6 text-center md:text-left">
+            <div className="space-y-2">
+              <h3 className="text-2xl font-bold italic font-serif text-foreground">
+                "{quote}"
+              </h3>
+              <p className="text-muted-foreground">
+                Your readiness score: <span className="font-bold text-foreground">{data.readinessScore}/100</span>.
+                Keep working toward your goals.
+              </p>
+            </div>
+            <Button size="lg" variant="secondary" className="h-12 px-8 font-bold shadow-sm" asChild>
+              <Link to="/dashboard">Back to Dashboard <ArrowUpRight className="ml-2 h-5 w-5" /></Link>
+            </Button>
+          </CardContent>
+        </Card>
+
         <header className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
           <div>
             <h1 className="text-3xl font-bold tracking-tight">Your Home Ownership Goals</h1>
@@ -214,6 +271,28 @@ export default function GoalsPage() {
           </DialogContent>
         </Dialog>
 
+        <AlertDialog open={!!goalToDelete} onOpenChange={(open) => !open && setGoalToDelete(null)}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Delete Goal</AlertDialogTitle>
+              <AlertDialogDescription>
+                Are you sure you want to delete &quot;{goalToDelete?.goal_name}&quot;? This action cannot be undone.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel disabled={deleting}>Cancel</AlertDialogCancel>
+              <Button
+                variant="destructive"
+                onClick={handleDelete}
+                disabled={deleting}
+              >
+                {deleting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                Delete
+              </Button>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+
         <div className="grid gap-8 lg:grid-cols-3">
           {/* Goal Cards — from database */}
           <div className="lg:col-span-2 space-y-6">
@@ -228,6 +307,15 @@ export default function GoalsPage() {
                     <div className="absolute top-0 right-0 p-4 opacity-10 transition-opacity group-hover:opacity-20">
                       <Icon className="h-16 w-16" />
                     </div>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="absolute top-2 right-2 z-10 h-8 w-8 text-muted-foreground hover:text-destructive"
+                      onClick={() => setGoalToDelete(goal)}
+                      aria-label={`Delete ${goal.goal_name}`}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
                     <CardHeader className="pb-2">
                       <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 text-primary mb-2">
                         <Icon className="h-5 w-5" />
