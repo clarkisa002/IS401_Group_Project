@@ -28,7 +28,7 @@ import { Tooltip as UITooltip, TooltipContent, TooltipTrigger } from "@/componen
 import { motion } from "framer-motion";
 
 export default function Dashboard() {
-  const { data, resetToDemo, exportData } = useUserData();
+  const { data, refreshData, exportData } = useUserData();
   const quote = useSessionQuote(data?.readinessScore ?? 0);
 
   if (!data) return null;
@@ -95,8 +95,8 @@ export default function Dashboard() {
             </p>
           </div>
           <div className="flex flex-wrap gap-2 md:justify-end">
-            <Button variant="outline" size="sm" onClick={resetToDemo} className="gap-2">
-              <RefreshCcw className="h-4 w-4" /> Reset Demo
+            <Button variant="outline" size="sm" onClick={refreshData} className="gap-2">
+              <RefreshCcw className="h-4 w-4" /> Refresh Data
             </Button>
             <Button variant="outline" size="sm" onClick={exportData} className="gap-2">
               <Download className="h-4 w-4" /> Export Report

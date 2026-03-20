@@ -32,7 +32,7 @@ npm install
 ### 2. Set up Supabase
 
 1. Create a project at [supabase.com](https://supabase.com)
-2. In **SQL Editor**, run the contents of `db/supabase_schema.sql`
+2. In **SQL Editor**, run the contents of `db/supabase_schema.sql`, then run `db/migrate_readiness_history.sql` for score history and financial snapshot fields
 3. In **Authentication → Providers → Email**, turn **off** "Confirm email" so users can sign in immediately after signup (no email verification)
 4. In **Settings → API**, copy your **Project URL** and **anon public** key
 
@@ -60,6 +60,7 @@ Open **http://localhost:8080**. Sign up at `/signup` or sign in at `/login`.
 - **Sign up:** Go to http://localhost:8080/signup to create an account
 - **Sign in:** Go to http://localhost:8080/login
 - **Goals:** After signing in, visit `/goals` to create and track savings goals (stored in Supabase)
+- **Data Entry:** Use **Settings** to add income, expenses, and update your financial snapshot. Add contributions to goals on the Goals page.
 
 ---
 

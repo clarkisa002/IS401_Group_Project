@@ -13,6 +13,7 @@ import {
   Zap, 
   TrendingUp, 
   Calendar,
+  PiggyBank,
   AlertCircle,
   Loader2,
   Trash2,
@@ -50,6 +51,8 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { supabase } from "@/lib/supabase";
+import { updateGoalProgress, recalculateAndSaveReadinessScore } from "@/lib/supabase-data";
+import { toast } from "sonner";
 
 interface DbGoal {
   goal_id: string;
@@ -63,7 +66,7 @@ interface DbGoal {
 }
 
 export default function GoalsPage() {
-  const { data } = useUserData();
+  const { data, invalidateUserData } = useUserData();
   const { user } = useAuth();
   const userId = user?.user_id;
   const quote = useSessionQuote(data?.readinessScore ?? 0);
@@ -77,6 +80,9 @@ export default function GoalsPage() {
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [goalToDelete, setGoalToDelete] = useState<DbGoal | null>(null);
   const [deleting, setDeleting] = useState(false);
+  const [goalToContribute, setGoalToContribute] = useState<DbGoal | null>(null);
+  const [contributeAmount, setContributeAmount] = useState("");
+  const [contributing, setContributing] = useState(false);
 
   const fetchGoals = useCallback(async () => {
     if (!userId) return;
@@ -124,6 +130,8 @@ export default function GoalsPage() {
         setTargetAmount("");
         setTargetDate("");
         setDialogOpen(false);
+        await recalculateAndSaveReadinessScore(userId);
+        invalidateUserData();
         await fetchGoals();
       } else {
         setSubmitError(error?.message || "Could not create goal. Please try again.");
@@ -148,6 +156,8 @@ export default function GoalsPage() {
 
       if (!error) {
         setGoalToDelete(null);
+        await recalculateAndSaveReadinessScore(userId);
+        invalidateUserData();
         await fetchGoals();
       } else {
         console.error("Could not delete goal:", error.message);
@@ -159,6 +169,25 @@ export default function GoalsPage() {
     }
   };
 
+  const handleContribute = async () => {
+    if (!goalToContribute || !userId || !contributeAmount || parseFloat(contributeAmount) <= 0) return;
+    setContributing(true);
+    try {
+      const current = parseFloat(goalToContribute.current_progress);
+      const add = parseFloat(contributeAmount);
+      await updateGoalProgress(userId, goalToContribute.goal_id, current + add);
+      invalidateUserData();
+      setGoalToContribute(null);
+      setContributeAmount("");
+      await fetchGoals();
+      toast.success("Contribution added successfully");
+    } catch (err) {
+      console.error("Failed to update goal progress:", err);
+    } finally {
+      setContributing(false);
+    }
+  };
+
   if (!data) return null;
 
   const allocationData = [
@@ -167,13 +196,13 @@ export default function GoalsPage() {
     { name: "Closing Costs", value: data.savings.allocation.closingCosts, color: "#f59e0b" },
   ];
 
-  const getGoalIcon = (type: string) => {
-    switch (type) {
-      case 'Home': return Home;
-      case 'Shield': return Shield;
-      case 'FileText': return FileText;
-      default: return Target;
-    }
+  const getGoalIcon = (goal: DbGoal) => {
+    const name = goal.goal_name.toLowerCase();
+    const type = goal.goal_type.toLowerCase();
+    if (name.includes("down payment") || type.includes("down") || type === "home") return Home;
+    if (name.includes("emergency") || type.includes("emergency") || type === "shield") return Shield;
+    if (name.includes("closing") || type.includes("closing") || type === "filetext") return FileText;
+    return Target;
   };
 
   return (
@@ -271,6 +300,43 @@ export default function GoalsPage() {
           </DialogContent>
         </Dialog>
 
+        <Dialog open={!!goalToContribute} onOpenChange={(open) => !open && (setGoalToContribute(null), setContributeAmount(""))}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Add Contribution</DialogTitle>
+              <DialogDescription>
+                Add to &quot;{goalToContribute?.goal_name}&quot; progress. Current: ${goalToContribute ? parseFloat(goalToContribute.current_progress).toLocaleString() : "0"}
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4 py-2">
+              <div className="space-y-2">
+                <Label htmlFor="contribute-amount">Amount to add ($)</Label>
+                <Input
+                  id="contribute-amount"
+                  type="number"
+                  min="0.01"
+                  step="0.01"
+                  placeholder="e.g. 500"
+                  value={contributeAmount}
+                  onChange={(e) => setContributeAmount(e.target.value)}
+                />
+              </div>
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => (setGoalToContribute(null), setContributeAmount(""))}>
+                Cancel
+              </Button>
+              <Button
+                onClick={handleContribute}
+                disabled={contributing || !contributeAmount || parseFloat(contributeAmount) <= 0}
+              >
+                {contributing && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                Add Contribution
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
         <AlertDialog open={!!goalToDelete} onOpenChange={(open) => !open && setGoalToDelete(null)}>
           <AlertDialogContent>
             <AlertDialogHeader>
@@ -298,7 +364,7 @@ export default function GoalsPage() {
           <div className="lg:col-span-2 space-y-6">
             <div className="grid gap-6 sm:grid-cols-2">
               {dbGoals.map((goal) => {
-                const Icon = getGoalIcon(goal.goal_type);
+                const Icon = getGoalIcon(goal);
                 const target = parseFloat(goal.target_amount);
                 const current = parseFloat(goal.current_progress);
                 const progress = target > 0 ? (current / target) * 100 : 0;
@@ -340,6 +406,17 @@ export default function GoalsPage() {
                           <span>${(target - current).toLocaleString()} left</span>
                         </div>
                       </div>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="w-full gap-2"
+                        onClick={() => {
+                          setGoalToContribute(goal);
+                          setContributeAmount("");
+                        }}
+                      >
+                        <PiggyBank className="h-4 w-4" /> Add Contribution
+                      </Button>
                     </CardContent>
                   </Card>
                 );

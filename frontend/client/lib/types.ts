@@ -7,6 +7,7 @@ export interface UserData {
     total: number;
     monthly: { month: string; amount: number; costTrend: number }[];
     target: number;
+    homePriceMin?: number;
     allocation: {
       downPayment: number;
       emergencyFund: number;
