@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Layout } from "@/components/Layout";
 import { useUserData } from "@/hooks/use-user-data";
 import { AddExpenseDialog } from "@/components/AddExpenseDialog";
+import { AddIncomeDialog } from "@/components/AddIncomeDialog";
 import { 
   PieChart as LucidePieChart, 
   ArrowDownCircle, 
@@ -11,7 +12,8 @@ import {
   ChevronRight,
   Filter,
   Lightbulb,
-  CreditCard
+  CreditCard,
+  DollarSign
 } from "lucide-react";
 import { 
   ResponsiveContainer, 
@@ -41,6 +43,7 @@ import {
 export default function SpendingPage() {
   const { data } = useUserData();
   const [range, setRange] = useState("Last 30 Days");
+  const [incomeDialogOpen, setIncomeDialogOpen] = useState(false);
   const [expenseDialogOpen, setExpenseDialogOpen] = useState(false);
 
   if (!data) return null;
@@ -63,6 +66,9 @@ export default function SpendingPage() {
             <p className="text-muted-foreground">Understand where your money goes and find opportunities to save.</p>
           </div>
           <div className="flex items-center gap-2">
+            <Button size="sm" onClick={() => setIncomeDialogOpen(true)} className="gap-2">
+              <DollarSign className="h-4 w-4" /> Add Income
+            </Button>
             <Button size="sm" onClick={() => setExpenseDialogOpen(true)} className="gap-2">
               <CreditCard className="h-4 w-4" /> Add Expense
             </Button>
@@ -283,6 +289,7 @@ export default function SpendingPage() {
         </Card>
       </div>
 
+      <AddIncomeDialog open={incomeDialogOpen} onOpenChange={setIncomeDialogOpen} />
       <AddExpenseDialog open={expenseDialogOpen} onOpenChange={setExpenseDialogOpen} />
     </Layout>
   );

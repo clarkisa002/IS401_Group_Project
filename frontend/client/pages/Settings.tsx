@@ -4,7 +4,6 @@ import { useAuth } from "@/hooks/use-auth";
 import { useUserData } from "@/hooks/use-user-data";
 import { AddIncomeDialog } from "@/components/AddIncomeDialog";
 import { AddExpenseDialog } from "@/components/AddExpenseDialog";
-import { FinancialSnapshotForm } from "@/components/FinancialSnapshotForm";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { UserCircle2, Mail, Gauge, DollarSign, Receipt } from "lucide-react";
@@ -77,8 +76,6 @@ export default function Settings() {
             </Button>
           </CardContent>
         </Card>
-
-        <FinancialSnapshotForm />
       </div>
 
       <AddIncomeDialog open={incomeDialogOpen} onOpenChange={setIncomeDialogOpen} />

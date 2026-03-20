@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Layout } from "@/components/Layout";
 import { useUserData } from "@/hooks/use-user-data";
 import { Link } from "react-router-dom";
@@ -8,7 +9,8 @@ import {
   Users,
   Info,
   Download,
-  RefreshCcw
+  RefreshCcw,
+  PencilSquare
 } from "lucide-react";
 import { 
   ResponsiveContainer, 
@@ -23,6 +25,11 @@ import { cn } from "@/lib/utils";
 import { useSessionQuote } from "@/hooks/use-session-quote";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Dialog,
+  DialogContent,
+} from "@/components/ui/dialog";
+import { FinancialSnapshotForm } from "@/components/FinancialSnapshotForm";
 import { Progress } from "@/components/ui/progress";
 import { Tooltip as UITooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { motion } from "framer-motion";
@@ -30,6 +37,7 @@ import { motion } from "framer-motion";
 export default function Dashboard() {
   const { data, refreshData, exportData } = useUserData();
   const quote = useSessionQuote(data?.readinessScore ?? 0);
+  const [snapshotDialogOpen, setSnapshotDialogOpen] = useState(false);
 
   if (!data) return null;
 
@@ -95,6 +103,9 @@ export default function Dashboard() {
             </p>
           </div>
           <div className="flex flex-wrap gap-2 md:justify-end">
+            <Button variant="outline" size="sm" onClick={() => setSnapshotDialogOpen(true)} className="gap-2">
+              <PencilSquare className="h-4 w-4" /> Edit financial snapshot
+            </Button>
             <Button variant="outline" size="sm" onClick={refreshData} className="gap-2">
               <RefreshCcw className="h-4 w-4" /> Refresh Data
             </Button>
@@ -342,6 +353,12 @@ export default function Dashboard() {
           </CardContent>
         </Card>
       </div>
+
+      <Dialog open={snapshotDialogOpen} onOpenChange={setSnapshotDialogOpen}>
+        <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
+          <FinancialSnapshotForm onSaved={() => setSnapshotDialogOpen(false)} />
+        </DialogContent>
+      </Dialog>
     </Layout>
   );
 }

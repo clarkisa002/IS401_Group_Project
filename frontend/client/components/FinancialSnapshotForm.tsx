@@ -9,7 +9,11 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Loader2, Save } from "lucide-react";
 import { toast } from "sonner";
 
-export function FinancialSnapshotForm() {
+interface FinancialSnapshotFormProps {
+  onSaved?: () => void;
+}
+
+export function FinancialSnapshotForm({ onSaved }: FinancialSnapshotFormProps) {
   const { user } = useAuth();
   const { data, invalidateUserData } = useUserData();
   const [downpaymentGoal, setDownpaymentGoal] = useState("");
@@ -56,6 +60,7 @@ export function FinancialSnapshotForm() {
       await recalculateAndSaveReadinessScore(user.user_id);
       invalidateUserData();
       toast.success("Financial snapshot saved");
+      onSaved?.();
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Failed to save");
     } finally {
