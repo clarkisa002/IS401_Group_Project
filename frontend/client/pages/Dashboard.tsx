@@ -6,7 +6,6 @@ import {
   TrendingUp,
   Wallet,
   ArrowUpRight, 
-  Users,
   Info,
   Download,
   RefreshCcw
@@ -110,9 +109,6 @@ export default function Dashboard() {
             </Button>
             <Button variant="outline" size="sm" onClick={exportData} className="gap-2">
               <Download className="h-4 w-4" /> Export Report
-            </Button>
-            <Button size="sm" className="gap-2">
-              <Users className="h-4 w-4" /> Compare with Peers
             </Button>
           </div>
         </header>

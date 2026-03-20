@@ -134,22 +134,6 @@ export default function Index() {
                     </AreaChart>
                   </ResponsiveContainer>
                 </div>
-
-                <div className="mt-6 flex items-center justify-between border-t pt-6">
-                  <div className="flex -space-x-3">
-                    {[1, 2, 3, 4].map((i) => (
-                      <div key={i} className="h-10 w-10 rounded-full border-2 border-background bg-muted flex items-center justify-center text-[10px] font-bold overflow-hidden">
-                        <img src={`https://i.pravatar.cc/40?img=${i+10}`} alt="User" />
-                      </div>
-                    ))}
-                    <div className="flex h-10 w-10 items-center justify-center rounded-full border-2 border-background bg-primary text-[10px] font-bold text-primary-foreground">
-                      +2k
-                    </div>
-                  </div>
-                  <p className="text-xs text-muted-foreground font-medium">
-                    Joined by <span className="text-foreground font-bold">2,431 others</span> this week
-                  </p>
-                </div>
               </div>
             </motion.div>
           </div>
