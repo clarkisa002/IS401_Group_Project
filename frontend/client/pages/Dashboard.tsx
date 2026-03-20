@@ -9,8 +9,7 @@ import {
   Users,
   Info,
   Download,
-  RefreshCcw,
-  PencilSquare
+  RefreshCcw
 } from "lucide-react";
 import { 
   ResponsiveContainer, 
@@ -104,7 +103,7 @@ export default function Dashboard() {
           </div>
           <div className="flex flex-wrap gap-2 md:justify-end">
             <Button variant="outline" size="sm" onClick={() => setSnapshotDialogOpen(true)} className="gap-2">
-              <PencilSquare className="h-4 w-4" /> Edit financial snapshot
+              <Info className="h-4 w-4" /> Edit financial snapshot
             </Button>
             <Button variant="outline" size="sm" onClick={refreshData} className="gap-2">
               <RefreshCcw className="h-4 w-4" /> Refresh Data
