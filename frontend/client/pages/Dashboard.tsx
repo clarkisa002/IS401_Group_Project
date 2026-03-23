@@ -26,6 +26,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
+  DialogTitle,
 } from "@/components/ui/dialog";
 import { FinancialSnapshotForm } from "@/components/FinancialSnapshotForm";
 import { Progress } from "@/components/ui/progress";
@@ -351,6 +353,10 @@ export default function Dashboard() {
 
       <Dialog open={snapshotDialogOpen} onOpenChange={setSnapshotDialogOpen}>
         <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
+          <DialogTitle className="sr-only">Edit financial snapshot</DialogTitle>
+          <DialogDescription className="sr-only">
+            Update your credit score, income, debt, and savings snapshot.
+          </DialogDescription>
           <FinancialSnapshotForm onSaved={() => setSnapshotDialogOpen(false)} />
         </DialogContent>
       </Dialog>
