@@ -39,10 +39,10 @@ export function Navbar() {
                 to={item.path}
                 className={cn(
                   "flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition-all hover:bg-accent",
-                  isActive ? "bg-accent text-primary shadow-sm" : "text-muted-foreground"
+                  isActive ? "bg-primary text-white shadow-sm" : "text-muted-foreground"
                 )}
               >
-                <Icon className={cn("h-4 w-4", isActive ? "text-primary" : "text-muted-foreground")} />
+                <Icon className={cn("h-4 w-4", isActive ? "text-white" : "text-muted-foreground")} />
                 {item.name}
               </Link>
             );

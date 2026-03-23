@@ -1,7 +1,7 @@
 import { ReactNode } from "react";
 import { Navbar } from "./Navbar";
 import { Link, useLocation } from "react-router-dom";
-import { ChevronRight, Home, LayoutDashboard, TrendingUp, Target, PieChart, GraduationCap, Plus } from "lucide-react";
+import { ChevronRight, Home, LayoutDashboard, TrendingUp, Target, PieChart, GraduationCap } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface LayoutProps {
@@ -76,9 +76,6 @@ export function Layout({ children }: LayoutProps) {
             </Link>
           );
         })}
-        <button className="flex h-12 w-12 items-center justify-center rounded-full bg-secondary text-secondary-foreground shadow-lg transition-transform hover:rotate-90">
-          <Plus className="h-5 w-5" />
-        </button>
       </div>
 
       <footer className="border-t bg-card/50 py-12 hidden md:block">

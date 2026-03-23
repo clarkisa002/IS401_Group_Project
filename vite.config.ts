@@ -7,7 +7,7 @@ import { createServer } from "./server";
 export default defineConfig(({ mode }) => ({
   root: "frontend",
   server: {
-    host: "::",
+    host: "localhost",
     port: 8080,
     fs: {
       allow: ["./frontend", "./shared"],
