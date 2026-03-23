@@ -95,18 +95,19 @@ pnpm run dev
 =======
 
 
-   EARS REQUIREMENTS
-   ---Complete---
-   1. The system shall display a toolbar that allows users to navigate between major sections of the application.
-   2. The system shall display a login interface that allows the user to enter authentication credentials.
-   3. When a user enters valid login credentials, the system shall authenticate the user and grant access to their account.
-   4. While the application is deployed online, the system shall allow users to access the application through a hosted web URL.
-  
-   ---Not Complete---
-   1. When a user views the homepage, the system shall provide personalized real estate preparation recommendations based on the user profile.
-   2. When a user accesses the profile page, the system shall allow the user to update financial or home-buying preference information.
-   3. When a user saves preparation progress, the system shall store and track the user's progress toward purchasing real estate.
-   4. While a user navigates the application, the system shall provide guidance on steps such as budgeting, credit preparation, and mortgage readiness.
-      
-
->>>>>>> a3fe7a5877206925f2a8d22a99c3bb4c3ab2ca30
+  EARS Requirements — Updated
+--- Complete ---
+The system shall display a toolbar that allows users to navigate between major sections of the application.
+The system shall display a login interface that allows the user to enter authentication credentials.
+When a user enters valid login credentials, the system shall authenticate the user and grant access to their account.
+While the application is deployed online, the system shall allow users to access the application through a hosted web URL.
+--- Updated / Newly Implemented ---
+When a user accesses the goals page, the system shall display a list of real estate preparation goals that guide the user through the home-buying process.
+When a user views their goals, the system shall allow the user to track progress on tasks related to budgeting, credit improvement, savings, and mortgage readiness.
+When a user interacts with a goal, the system shall allow the user to mark goals or steps as complete.
+When a user updates goal progress, the system shall save and persist the user's progress across sessions.
+While a user navigates the application, the system shall provide structured guidance through defined goal-based steps instead of general recommendations.
+--- Still In Progress / Not Fully Complete ---
+When a user views the homepage, the system shall provide fully personalized recommendations based on the user’s financial profile and preferences.
+When a user accesses the profile page, the system shall allow the user to update and persist detailed financial and home-buying preference information.
+When a user saves preparation progress, the system shall generate insights or feedback based on completed and remaining goals.
