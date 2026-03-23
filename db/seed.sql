@@ -15,8 +15,8 @@ INSERT INTO users (email, first_name, last_name) VALUES
 -- Authentication (password_hash is bcrypt for "password123" - change in production)
 -- ---------------------------------------------------------------------------
 INSERT INTO authentication (user_id, password_hash) VALUES
-  (1, '$2a$10$placeholder.hash.replace.with.real.bcrypt'),
-  (2, '$2a$10$placeholder.hash.replace.with.real.bcrypt');
+  (1, '$2b$10$a6F78PJPhCyBE0OSLxLAmeQG2jwAF.gL0AkHWCfuwnMbyraeYI0XS'),
+  (2, '$2b$10$a6F78PJPhCyBE0OSLxLAmeQG2jwAF.gL0AkHWCfuwnMbyraeYI0XS');
 
 -- ---------------------------------------------------------------------------
 -- Personal Readiness Score (matches demo readiness score 68, savings 45000)

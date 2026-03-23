@@ -55,9 +55,9 @@ CREATE TABLE goals (
   user_id         INT NOT NULL REFERENCES users(user_id) ON DELETE CASCADE,
   goal_name       VARCHAR(255) NOT NULL,
   goal_type       VARCHAR(50),
-  target_amount   DECIMAL(10, 2),
+  target_amount   DECIMAL(18, 2),
   target_date     DATE,
-  current_progress DECIMAL(10, 2) DEFAULT 0,
+  current_progress DECIMAL(18, 2) DEFAULT 0,
   is_active       BOOLEAN DEFAULT true,
   created_at      TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
