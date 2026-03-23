@@ -215,8 +215,8 @@ export function FinancialSnapshotForm({ onSaved }: FinancialSnapshotFormProps) {
             />
           </div>
           <Button type="submit" disabled={submitting}>
-            {submitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            <Save className="mr-2 h-4 w-4" />
+            {submitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" aria-hidden />}
+            <Save className="mr-2 h-4 w-4" aria-hidden />
             Save Snapshot
           </Button>
         </form>

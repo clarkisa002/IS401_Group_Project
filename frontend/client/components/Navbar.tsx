@@ -34,15 +34,15 @@ export function Navbar() {
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container flex h-16 items-center justify-between">
         <div className="flex items-center gap-2">
-          <Link to="/" className="flex items-center gap-2 transition-opacity hover:opacity-80">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary text-primary-foreground shadow-lg shadow-primary/20">
+          <Link to="/" className="flex items-center gap-2 transition-opacity hover:opacity-80" aria-label="HomePath home">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary text-primary-foreground shadow-lg shadow-primary/20" aria-hidden>
               <Home className="h-6 w-6" />
             </div>
             <span className="hidden font-bold sm:inline-block text-xl tracking-tight">HomePath</span>
           </Link>
         </div>
 
-        <nav className="hidden md:flex items-center gap-1">
+        <nav className="hidden md:flex items-center gap-1" aria-label="Main navigation">
           {navItems.map((item) => {
             const Icon = item.icon;
             const isActive = location.pathname === item.path;
@@ -79,6 +79,7 @@ export function Navbar() {
                   <Button
                     variant="ghost"
                     className="h-10 w-10 rounded-full p-0 border border-primary/20 ring-2 ring-background ring-offset-2 ring-offset-primary/10"
+                    aria-label="Open user menu"
                   >
                     <Avatar className="h-10 w-10">
                       <AvatarFallback className="bg-primary text-primary-foreground font-bold">
@@ -132,7 +133,7 @@ export function Navbar() {
             {isAuthenticated ? (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="icon" className="rounded-full h-10 w-10 border border-border">
+                  <Button variant="ghost" size="icon" className="rounded-full h-10 w-10 border border-border" aria-label="Open user menu">
                     <Avatar className="h-8 w-8">
                       <AvatarFallback className="bg-primary text-primary-foreground font-bold text-xs">
                         {displayInitial}
@@ -159,8 +160,10 @@ export function Navbar() {
                 </DropdownMenuContent>
               </DropdownMenu>
             ) : (
-              <Button variant="ghost" size="icon" className="rounded-full h-10 w-10 border border-border">
-                <Menu className="h-5 w-5" />
+              <Button variant="ghost" size="icon" className="rounded-full h-10 w-10 border border-border" asChild aria-label="Sign in">
+                <Link to="/login">
+                  <Menu className="h-5 w-5" aria-hidden />
+                </Link>
               </Button>
             )}
           </div>

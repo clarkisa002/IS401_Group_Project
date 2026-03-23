@@ -92,7 +92,7 @@ export function AddExpenseDialog({ open, onOpenChange }: AddExpenseDialogProps) 
           <div className="space-y-2">
             <Label htmlFor="category">Category</Label>
             <Select value={category} onValueChange={setCategory} required>
-              <SelectTrigger>
+              <SelectTrigger id="category">
                 <SelectValue placeholder="Select category" />
               </SelectTrigger>
               <SelectContent>
@@ -131,7 +131,7 @@ export function AddExpenseDialog({ open, onOpenChange }: AddExpenseDialogProps) 
               type="submit"
               disabled={submitting || !amount || parseFloat(amount) <= 0 || !category}
             >
-              {submitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              {submitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" aria-hidden />}
               Add Expense
             </Button>
           </DialogFooter>

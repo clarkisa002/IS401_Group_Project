@@ -245,7 +245,7 @@ export default function GoalsPage() {
               </DialogDescription>
             </DialogHeader>
             {submitError && (
-              <div className="rounded-md bg-destructive/10 border border-destructive/20 px-3 py-2 text-sm text-destructive font-medium">
+              <div role="alert" className="rounded-md bg-destructive/10 border border-destructive/20 px-3 py-2 text-sm text-destructive font-medium">
                 {submitError}
               </div>
             )}
@@ -293,7 +293,7 @@ export default function GoalsPage() {
             <DialogFooter>
               <Button variant="outline" onClick={() => setDialogOpen(false)}>Cancel</Button>
               <Button onClick={handleSubmit} disabled={submitting || !goalName.trim() || !targetAmount.trim()}>
-                {submitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                {submitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" aria-hidden />}
                 Create Goal
               </Button>
             </DialogFooter>
@@ -330,7 +330,7 @@ export default function GoalsPage() {
                 onClick={handleContribute}
                 disabled={contributing || !contributeAmount || parseFloat(contributeAmount) <= 0}
               >
-                {contributing && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                {contributing && <Loader2 className="mr-2 h-4 w-4 animate-spin" aria-hidden />}
                 Add Contribution
               </Button>
             </DialogFooter>
@@ -352,7 +352,7 @@ export default function GoalsPage() {
                 onClick={handleDelete}
                 disabled={deleting}
               >
-                {deleting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                {deleting && <Loader2 className="mr-2 h-4 w-4 animate-spin" aria-hidden />}
                 Delete
               </Button>
             </AlertDialogFooter>
@@ -423,8 +423,10 @@ export default function GoalsPage() {
               })}
               
               <button
+                type="button"
                 onClick={() => setDialogOpen(true)}
                 className="flex flex-col items-center justify-center rounded-xl border-2 border-dashed border-muted-foreground/20 p-8 transition-colors hover:border-primary/50 hover:bg-primary/5 group"
+                aria-label="Add new goal"
               >
                 <div className="flex h-12 w-12 items-center justify-center rounded-full bg-muted text-muted-foreground transition-colors group-hover:bg-primary group-hover:text-primary-foreground mb-4">
                   <Plus className="h-6 w-6" />

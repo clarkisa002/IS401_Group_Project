@@ -111,7 +111,7 @@ export function AddIncomeDialog({ open, onOpenChange }: AddIncomeDialogProps) {
               Cancel
             </Button>
             <Button type="submit" disabled={submitting || !amount || parseFloat(amount) <= 0}>
-              {submitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              {submitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" aria-hidden />}
               Add Income
             </Button>
           </DialogFooter>

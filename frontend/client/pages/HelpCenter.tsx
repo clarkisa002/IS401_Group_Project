@@ -58,7 +58,7 @@ export default function HelpCenter() {
             <Card key={section.title}>
               <CardHeader>
                 <div className="flex items-center gap-2">
-                  <Icon className="h-5 w-5 text-primary" />
+                  <Icon className="h-5 w-5 text-primary" aria-hidden />
                   <CardTitle>{section.title}</CardTitle>
                 </div>
                 <CardDescription>{section.description}</CardDescription>

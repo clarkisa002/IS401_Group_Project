@@ -11,7 +11,11 @@ export function RequireAuth({ children }: RequireAuthProps) {
   const location = useLocation();
 
   if (loading) {
-    return null;
+    return (
+      <div role="status" aria-live="polite" aria-label="Loading" className="sr-only">
+        Loading…
+      </div>
+    );
   }
 
   if (!isAuthenticated) {

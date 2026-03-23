@@ -87,7 +87,7 @@ export default function Index() {
               className="relative"
             >
               <div className="absolute -inset-4 rounded-[2.5rem] bg-gradient-to-tr from-primary/20 via-primary/5 to-transparent blur-2xl" />
-              <div className="relative rounded-3xl border bg-card/50 p-6 shadow-2xl backdrop-blur-sm sm:p-8">
+              <div className="relative rounded-3xl border bg-card/50 p-6 shadow-2xl backdrop-blur-sm sm:p-8" role="img" aria-label="Readiness trajectory chart showing your progress towards a home readiness score of 100 over time">
                 <div className="mb-6 flex items-center justify-between">
                   <div className="space-y-1">
                     <h3 className="font-bold">Readiness Trajectory</h3>

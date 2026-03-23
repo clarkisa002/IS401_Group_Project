@@ -72,9 +72,9 @@ export default function SpendingPage() {
             <Button size="sm" onClick={() => setExpenseDialogOpen(true)} className="gap-2">
               <CreditCard className="h-4 w-4" /> Add Expense
             </Button>
-            <Filter className="h-4 w-4 text-muted-foreground" />
+            <Filter className="h-4 w-4 text-muted-foreground" aria-hidden />
             <Select value={range} onValueChange={setRange}>
-              <SelectTrigger className="w-[180px]">
+              <SelectTrigger className="w-[180px]" aria-label="Time range for spending data">
                 <SelectValue placeholder="Select range" />
               </SelectTrigger>
               <SelectContent>

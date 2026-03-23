@@ -1,11 +1,7 @@
 import { ReactNode } from "react";
 import { Navbar } from "./Navbar";
 import { Link, useLocation } from "react-router-dom";
-<<<<<<< HEAD
-import { ChevronRight, Home, LayoutDashboard, TrendingUp, Target, PieChart, GraduationCap } from "lucide-react";
-=======
-import { ChevronRight, Home, LayoutDashboard, TrendingUp, Target, PieChart, Plus } from "lucide-react";
->>>>>>> d051bd030778907f022d76096f7d3201b56009ba
+import { ChevronRight, Home, LayoutDashboard, TrendingUp, Target, PieChart } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface LayoutProps {
@@ -27,16 +23,22 @@ export function Layout({ children }: LayoutProps) {
 
   return (
     <div className="relative min-h-screen flex flex-col bg-background selection:bg-primary/10 selection:text-primary">
+      <a
+        href="#main-content"
+        className="absolute -top-20 left-4 z-[100] rounded-md bg-primary px-4 py-2 text-primary-foreground shadow-lg transition-[top] duration-200 focus:top-4 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
+      >
+        Skip to main content
+      </a>
       <Navbar />
 
-      <main className="flex-1 pb-20 md:pb-0">
+      <main id="main-content" className="flex-1 pb-20 md:pb-0" tabIndex={-1}>
         {location.pathname !== "/" && (
           <div className="container py-4">
-            <nav className="flex items-center space-x-2 text-sm text-muted-foreground">
-              <Link to="/" className="flex items-center hover:text-primary transition-colors">
-                <Home className="h-4 w-4" />
+            <nav className="flex items-center space-x-2 text-sm text-muted-foreground" aria-label="Breadcrumb">
+              <Link to="/" className="flex items-center hover:text-primary transition-colors" aria-label="Home">
+                <Home className="h-4 w-4" aria-hidden />
               </Link>
-              {pathnames.length > 0 && <ChevronRight className="h-4 w-4" />}
+              {pathnames.length > 0 && <ChevronRight className="h-4 w-4" aria-hidden />}
               {pathnames.map((value, index) => {
                 const last = index === pathnames.length - 1;
                 const to = `/${pathnames.slice(0, index + 1).join("/")}`;
@@ -51,7 +53,7 @@ export function Layout({ children }: LayoutProps) {
                     <Link to={to} className="hover:text-primary transition-colors">
                       {label}
                     </Link>
-                    <ChevronRight className="h-4 w-4" />
+                    <ChevronRight className="h-4 w-4" aria-hidden />
                   </div>
                 );
               })}
@@ -62,7 +64,7 @@ export function Layout({ children }: LayoutProps) {
       </main>
 
       {/* Mobile Quick-Access Bottom Bar */}
-      <div className="fixed bottom-6 left-1/2 z-50 flex -translate-x-1/2 items-center gap-1 rounded-full border bg-background/80 p-1.5 shadow-2xl backdrop-blur-md md:hidden">
+      <nav className="fixed bottom-6 left-1/2 z-50 flex -translate-x-1/2 items-center gap-1 rounded-full border bg-background/80 p-1.5 shadow-2xl backdrop-blur-md md:hidden" aria-label="Mobile navigation">
         {mobileNavItems.map((item) => {
           const Icon = item.icon;
           const isActive = location.pathname === item.path;
@@ -74,12 +76,14 @@ export function Layout({ children }: LayoutProps) {
                 "flex h-12 w-12 items-center justify-center rounded-full transition-all",
                 isActive ? "bg-primary text-primary-foreground shadow-lg shadow-primary/20 scale-110" : "text-muted-foreground hover:bg-accent"
               )}
+              aria-label={`${item.name}${isActive ? " (current page)" : ""}`}
+              aria-current={isActive ? "page" : undefined}
             >
-              <Icon className="h-5 w-5" />
+              <Icon className="h-5 w-5" aria-hidden />
             </Link>
           );
         })}
-      </div>
+      </nav>
 
       <footer className="border-t bg-card/50 py-12 hidden md:block">
         <div className="container grid gap-8 md:grid-cols-2 lg:grid-cols-4">
