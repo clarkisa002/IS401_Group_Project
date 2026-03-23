@@ -24,10 +24,14 @@ export function FinancialSnapshotForm({ onSaved }: FinancialSnapshotFormProps) {
   const [income, setIncome] = useState("");
   const [incomeStability, setIncomeStability] = useState("");
   const [savingsTarget, setSavingsTarget] = useState("");
+  const [hasUserEdited, setHasUserEdited] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
     if (data) {
+      // Prevent overwriting user edits while Supabase/react-query is refetching.
+      // We only hydrate from `data` until the user starts typing.
+      if (hasUserEdited) return;
       setDownpaymentGoal(String(data.savings?.target ?? ""));
       setTotalSaved(String(data.savings?.total ?? ""));
       setHomePriceMin(String(data.savings?.homePriceMin ?? 320000));
@@ -37,7 +41,7 @@ export function FinancialSnapshotForm({ onSaved }: FinancialSnapshotFormProps) {
       setIncomeStability(String(data.incomeStability ?? ""));
       setSavingsTarget(String(data.savings?.target ?? ""));
     }
-  }, [data]);
+  }, [data, hasUserEdited]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -60,6 +64,7 @@ export function FinancialSnapshotForm({ onSaved }: FinancialSnapshotFormProps) {
       await recalculateAndSaveReadinessScore(user.user_id);
       invalidateUserData();
       toast.success("Financial snapshot saved");
+      setHasUserEdited(false);
       onSaved?.();
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Failed to save");
@@ -91,7 +96,10 @@ export function FinancialSnapshotForm({ onSaved }: FinancialSnapshotFormProps) {
                 max="850"
                 placeholder="e.g. 720"
                 value={creditScore}
-                onChange={(e) => setCreditScore(e.target.value)}
+                onChange={(e) => {
+                  setHasUserEdited(true);
+                  setCreditScore(e.target.value);
+                }}
               />
             </div>
           </div>
@@ -105,7 +113,10 @@ export function FinancialSnapshotForm({ onSaved }: FinancialSnapshotFormProps) {
                 step="0.01"
                 placeholder="e.g. 45000"
                 value={totalSaved}
-                onChange={(e) => setTotalSaved(e.target.value)}
+                onChange={(e) => {
+                  setHasUserEdited(true);
+                  setTotalSaved(e.target.value);
+                }}
               />
             </div>
             <div className="space-y-2">
@@ -117,7 +128,10 @@ export function FinancialSnapshotForm({ onSaved }: FinancialSnapshotFormProps) {
                 step="0.01"
                 placeholder="e.g. 80000"
                 value={savingsTarget}
-                onChange={(e) => setSavingsTarget(e.target.value)}
+                onChange={(e) => {
+                  setHasUserEdited(true);
+                  setSavingsTarget(e.target.value);
+                }}
               />
             </div>
           </div>
@@ -131,7 +145,10 @@ export function FinancialSnapshotForm({ onSaved }: FinancialSnapshotFormProps) {
                 step="0.01"
                 placeholder="e.g. 60000"
                 value={downpaymentGoal}
-                onChange={(e) => setDownpaymentGoal(e.target.value)}
+                onChange={(e) => {
+                  setHasUserEdited(true);
+                  setDownpaymentGoal(e.target.value);
+                }}
               />
             </div>
             <div className="space-y-2">
@@ -143,7 +160,10 @@ export function FinancialSnapshotForm({ onSaved }: FinancialSnapshotFormProps) {
                 step="1000"
                 placeholder="e.g. 320000"
                 value={homePriceMin}
-                onChange={(e) => setHomePriceMin(e.target.value)}
+                onChange={(e) => {
+                  setHasUserEdited(true);
+                  setHomePriceMin(e.target.value);
+                }}
               />
             </div>
           </div>
@@ -157,7 +177,10 @@ export function FinancialSnapshotForm({ onSaved }: FinancialSnapshotFormProps) {
                 step="0.01"
                 placeholder="e.g. 85000"
                 value={income}
-                onChange={(e) => setIncome(e.target.value)}
+                onChange={(e) => {
+                  setHasUserEdited(true);
+                  setIncome(e.target.value);
+                }}
               />
             </div>
             <div className="space-y-2">
@@ -169,7 +192,10 @@ export function FinancialSnapshotForm({ onSaved }: FinancialSnapshotFormProps) {
                 step="0.01"
                 placeholder="e.g. 12000"
                 value={debt}
-                onChange={(e) => setDebt(e.target.value)}
+                onChange={(e) => {
+                  setHasUserEdited(true);
+                  setDebt(e.target.value);
+                }}
               />
             </div>
           </div>
@@ -182,7 +208,10 @@ export function FinancialSnapshotForm({ onSaved }: FinancialSnapshotFormProps) {
               max="100"
               placeholder="e.g. 85"
               value={incomeStability}
-              onChange={(e) => setIncomeStability(e.target.value)}
+              onChange={(e) => {
+                setHasUserEdited(true);
+                setIncomeStability(e.target.value);
+              }}
             />
           </div>
           <Button type="submit" disabled={submitting}>
