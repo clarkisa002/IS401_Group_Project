@@ -402,7 +402,7 @@ export async function recalculateAndSaveReadinessScore(userId: string): Promise<
       .gte("expense_date", getDateMonthsAgo(1)),
     supabase
       .from("income")
-      .select("amount")
+      .select("amount, income_date")
       .eq("user_id", userId)
       .gte("income_date", getDateMonthsAgo(12)),
   ]);
