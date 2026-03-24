@@ -198,6 +198,12 @@ export default function Dashboard() {
                 </div>
               </div>
             </div>
+
+            <div className="mt-8 border-t border-primary/10 pt-8">
+              <p className="text-center text-xl font-bold italic font-serif text-foreground md:text-2xl max-w-3xl mx-auto leading-snug">
+                &ldquo;{quote}&rdquo;
+              </p>
+            </div>
           </CardContent>
         </Card>
 
@@ -333,11 +339,8 @@ export default function Dashboard() {
         <Card className="bg-primary/5 border border-primary/20">
           <CardContent className="flex flex-col md:flex-row items-center justify-between p-8 gap-6 text-center md:text-left">
             <div className="space-y-2">
-              <h3 className="text-2xl font-bold italic font-serif text-foreground">
-                "{quote}"
-              </h3>
               <p className="text-muted-foreground">
-                You've reached{" "}
+                You&apos;ve reached{" "}
                 <span className="font-bold text-foreground">
                   {Math.max(0, Math.min(100, Math.round(savingsProgress)))}%
                 </span>{" "}
