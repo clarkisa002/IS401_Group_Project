@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useAuth } from "@/hooks/use-auth";
+import { cn, focusRingClasses } from "@/lib/utils";
 import { Lock } from "lucide-react";
 
 interface LocationState {
@@ -52,7 +53,10 @@ export default function Login() {
               <CardTitle className="text-2xl font-bold tracking-tight">Sign in to HomePath</CardTitle>
               <CardDescription className="text-sm text-muted-foreground">
                 Sign in with your account. New?{" "}
-                <Link to="/signup" className="font-medium text-primary hover:underline">
+                <Link
+                  to="/signup"
+                  className={cn("font-medium text-primary underline-offset-4 hover:underline rounded-sm", focusRingClasses)}
+                >
                   Create an account
                 </Link>
               </CardDescription>
@@ -126,7 +130,7 @@ export default function Login() {
               </Button>
 
               <div className="mt-6 flex items-center justify-between text-xs text-muted-foreground">
-                <Link to="/" className="font-medium text-primary hover:underline">
+                <Link to="/" className={cn("font-medium text-primary underline-offset-4 hover:underline rounded-sm", focusRingClasses)}>
                   Back home
                 </Link>
               </div>

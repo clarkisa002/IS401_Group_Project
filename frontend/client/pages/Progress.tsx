@@ -19,11 +19,10 @@ import {
   Line, 
   XAxis, 
   YAxis, 
-  Tooltip, 
+  Tooltip,
   CartesianGrid,
-  Legend
 } from "recharts";
-import { cn } from "@/lib/utils";
+import { cn, chartTheme } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
@@ -114,26 +113,26 @@ export default function ProgressPage() {
             <div className="h-[400px] w-full">
               <ResponsiveContainer width="100%" height="100%">
                 <ComposedChart data={data.savings.monthly}>
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
-                  <XAxis 
-                    dataKey="month" 
-                    axisLine={false} 
-                    tickLine={false} 
-                    tick={{ fill: '#64748b', fontSize: 12 }}
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={chartTheme.gridStroke} />
+                  <XAxis
+                    dataKey="month"
+                    axisLine={false}
+                    tickLine={false}
+                    tick={{ fill: chartTheme.tickFill, fontSize: 12 }}
                   />
-                  <YAxis 
+                  <YAxis
                     yAxisId="left"
-                    axisLine={false} 
-                    tickLine={false} 
-                    tick={{ fill: '#64748b', fontSize: 12 }}
+                    axisLine={false}
+                    tickLine={false}
+                    tick={{ fill: chartTheme.tickFill, fontSize: 12 }}
                     tickFormatter={(value) => `$${value/1000}k`}
                   />
-                  <YAxis 
+                  <YAxis
                     yAxisId="right"
                     orientation="right"
-                    axisLine={false} 
-                    tickLine={false} 
-                    tick={{ fill: '#64748b', fontSize: 12 }}
+                    axisLine={false}
+                    tickLine={false}
+                    tick={{ fill: chartTheme.tickFill, fontSize: 12 }}
                     tickFormatter={(value) => `$${value/1000}k`}
                     domain={['auto', 'auto']}
                   />

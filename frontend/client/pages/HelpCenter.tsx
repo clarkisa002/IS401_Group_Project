@@ -1,11 +1,14 @@
 import { Layout } from "@/components/Layout";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader } from "@/components/ui/card";
 import { HelpCircle, Target, TrendingUp, Shield } from "lucide-react";
+
+const sectionHeadingClass = "text-2xl font-semibold leading-none tracking-tight";
 
 export default function HelpCenter() {
   const faqSections = [
     {
       icon: HelpCircle,
+      id: "getting-started",
       title: "Getting Started",
       description: "Learn the basics of HomePath",
       questions: [
@@ -15,6 +18,7 @@ export default function HelpCenter() {
     },
     {
       icon: Target,
+      id: "managing-goals",
       title: "Managing Goals",
       description: "Set and track your financial goals",
       questions: [
@@ -24,6 +28,7 @@ export default function HelpCenter() {
     },
     {
       icon: TrendingUp,
+      id: "understanding-score",
       title: "Understanding Your Score",
       description: "How we calculate your progress",
       questions: [
@@ -33,6 +38,7 @@ export default function HelpCenter() {
     },
     {
       icon: Shield,
+      id: "account-security",
       title: "Account & Security",
       description: "Keep your data safe",
       questions: [
@@ -54,26 +60,31 @@ export default function HelpCenter() {
 
         {faqSections.map((section) => {
           const Icon = section.icon;
+          const headingId = `help-section-${section.id}`;
           return (
-            <Card key={section.title}>
-              <CardHeader>
-                <div className="flex items-center gap-2">
-                  <Icon className="h-5 w-5 text-primary" aria-hidden />
-                  <CardTitle>{section.title}</CardTitle>
-                </div>
-                <CardDescription>{section.description}</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {section.questions.map((item) => (
-                  <div key={item.q} className="space-y-1">
-                    <p className="font-medium text-sm">{item.q}</p>
-                    <p className="text-sm text-muted-foreground pl-4 border-l-2 border-muted">
-                      {item.a}
-                    </p>
+            <section key={section.id} aria-labelledby={headingId}>
+              <Card>
+                <CardHeader>
+                  <div className="flex items-center gap-2">
+                    <Icon className="h-5 w-5 shrink-0 text-primary" aria-hidden />
+                    <h2 id={headingId} className={sectionHeadingClass}>
+                      {section.title}
+                    </h2>
                   </div>
-                ))}
-              </CardContent>
-            </Card>
+                  <CardDescription>{section.description}</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <dl className="space-y-4">
+                    {section.questions.map((item) => (
+                      <div key={item.q} className="space-y-1">
+                        <dt className="font-medium text-sm">{item.q}</dt>
+                        <dd className="m-0 border-l-2 border-muted pl-4 text-sm text-muted-foreground">{item.a}</dd>
+                      </div>
+                    ))}
+                  </dl>
+                </CardContent>
+              </Card>
+            </section>
           );
         })}
       </div>

@@ -1,6 +1,6 @@
 import { Link, useLocation } from "react-router-dom";
 import { LayoutDashboard, Target, TrendingUp, PieChart, Home, Menu, Settings, LogOut, UserCircle2 } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { cn, focusRingClasses } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useUserData } from "@/hooks/use-user-data";
@@ -34,7 +34,11 @@ export function Navbar() {
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container flex h-16 items-center justify-between">
         <div className="flex items-center gap-2">
-          <Link to="/" className="flex items-center gap-2 transition-opacity hover:opacity-80" aria-label="HomePath home">
+          <Link
+            to="/"
+            className={cn("flex items-center gap-2 rounded-xl transition-opacity hover:opacity-80", focusRingClasses)}
+            aria-label="HomePath home"
+          >
             <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary text-primary-foreground shadow-lg shadow-primary/20" aria-hidden>
               <Home className="h-6 w-6" />
             </div>
@@ -52,6 +56,7 @@ export function Navbar() {
                 to={item.path}
                 className={cn(
                   "group flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition-all",
+                  focusRingClasses,
                   isActive
                     ? "bg-primary text-white shadow-sm hover:bg-primary"
                     : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"

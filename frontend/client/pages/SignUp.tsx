@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useAuth } from "@/hooks/use-auth";
+import { cn, focusRingClasses } from "@/lib/utils";
 import { UserPlus } from "lucide-react";
 
 export default function SignUp() {
@@ -159,7 +160,10 @@ export default function SignUp() {
 
               <p className="mt-6 text-center text-sm text-muted-foreground">
                 Already have an account?{" "}
-                <Link to="/login" className="font-medium text-primary hover:underline">
+                <Link
+                  to="/login"
+                  className={cn("font-medium text-primary underline-offset-4 hover:underline rounded-sm", focusRingClasses)}
+                >
                   Sign in
                 </Link>
               </p>

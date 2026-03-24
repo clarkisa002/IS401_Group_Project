@@ -1,26 +1,32 @@
 import { Layout } from "@/components/Layout";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader } from "@/components/ui/card";
 import { FileText, CheckCircle, AlertTriangle, Scale } from "lucide-react";
+
+const sectionHeadingClass = "text-2xl font-semibold leading-none tracking-tight";
 
 export default function TermsOfService() {
   const sections = [
     {
       icon: CheckCircle,
+      id: "acceptance",
       title: "Acceptance",
       content: "By accessing or using HomePath, you agree to these Terms of Service. If you do not agree, please do not use the service.",
     },
     {
       icon: FileText,
+      id: "use-of-service",
       title: "Use of Service",
       content: "HomePath provides tools to help you track finances and plan for home ownership. You agree to use the service only for lawful purposes and in accordance with these terms. You must be at least 18 years old to use the service.",
     },
     {
       icon: AlertTriangle,
+      id: "user-responsibilities",
       title: "User Responsibilities",
       content: "You are responsible for the accuracy of the data you enter. You must keep your account credentials secure. Do not share your account or use the service to violate any laws or infringe on others' rights.",
     },
     {
       icon: Scale,
+      id: "limitation-of-liability",
       title: "Limitation of Liability",
       content: "HomePath is provided as-is for informational purposes. We do not provide financial, legal, or tax advice. You should consult qualified professionals for such advice. We are not liable for any decisions you make based on the service.",
     },
@@ -38,7 +44,7 @@ export default function TermsOfService() {
 
         <Card>
           <CardHeader>
-            <CardTitle>Overview</CardTitle>
+            <h2 className={sectionHeadingClass}>Overview</h2>
             <CardDescription>
               Please read these Terms of Service carefully before using HomePath. Your use of the service constitutes acceptance of these terms.
             </CardDescription>
@@ -47,20 +53,23 @@ export default function TermsOfService() {
 
         {sections.map((section) => {
           const Icon = section.icon;
+          const headingId = `terms-${section.id}`;
           return (
-            <Card key={section.title}>
-              <CardHeader>
-                <div className="flex items-center gap-2">
-                  <Icon className="h-5 w-5 text-primary" aria-hidden />
-                  <CardTitle>{section.title}</CardTitle>
-                </div>
-              </CardHeader>
-              <CardContent>
-                <p className="text-sm text-muted-foreground leading-relaxed">
-                  {section.content}
-                </p>
-              </CardContent>
-            </Card>
+            <section key={section.id} aria-labelledby={headingId}>
+              <Card>
+                <CardHeader>
+                  <div className="flex items-center gap-2">
+                    <Icon className="h-5 w-5 shrink-0 text-primary" aria-hidden />
+                    <h2 id={headingId} className={sectionHeadingClass}>
+                      {section.title}
+                    </h2>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-sm text-muted-foreground leading-relaxed">{section.content}</p>
+                </CardContent>
+              </Card>
+            </section>
           );
         })}
       </div>

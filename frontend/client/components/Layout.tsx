@@ -2,7 +2,7 @@ import { ReactNode } from "react";
 import { Navbar } from "./Navbar";
 import { Link, useLocation } from "react-router-dom";
 import { ChevronRight, Home, LayoutDashboard, TrendingUp, Target, PieChart } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { cn, focusRingClasses } from "@/lib/utils";
 
 interface LayoutProps {
   children: ReactNode;
@@ -35,7 +35,11 @@ export function Layout({ children }: LayoutProps) {
         {location.pathname !== "/" && (
           <div className="container py-4">
             <nav className="flex items-center space-x-2 text-sm text-muted-foreground" aria-label="Breadcrumb">
-              <Link to="/" className="flex items-center hover:text-primary transition-colors" aria-label="Home">
+              <Link
+                to="/"
+                className={cn("flex items-center rounded-sm hover:text-primary transition-colors", focusRingClasses)}
+                aria-label="Home"
+              >
                 <Home className="h-4 w-4" aria-hidden />
               </Link>
               {pathnames.length > 0 && <ChevronRight className="h-4 w-4" aria-hidden />}
@@ -50,7 +54,7 @@ export function Layout({ children }: LayoutProps) {
                   </span>
                 ) : (
                   <div key={to} className="flex items-center space-x-2">
-                    <Link to={to} className="hover:text-primary transition-colors">
+                    <Link to={to} className={cn("rounded-sm hover:text-primary transition-colors", focusRingClasses)}>
                       {label}
                     </Link>
                     <ChevronRight className="h-4 w-4" aria-hidden />
@@ -74,6 +78,7 @@ export function Layout({ children }: LayoutProps) {
               to={item.path}
               className={cn(
                 "flex h-12 w-12 items-center justify-center rounded-full transition-all",
+                focusRingClasses,
                 isActive
                   ? "bg-primary text-primary-foreground shadow-lg shadow-primary/20 scale-110"
                   : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
@@ -103,25 +108,59 @@ export function Layout({ children }: LayoutProps) {
           <div>
             <h4 className="mb-4 text-sm font-semibold uppercase tracking-wider text-foreground/80">Platform</h4>
             <ul className="space-y-2 text-sm text-muted-foreground">
-              <li><Link to="/dashboard" className="hover:text-primary transition-colors">Dashboard</Link></li>
-              <li><Link to="/progress" className="hover:text-primary transition-colors">Progress Tracker</Link></li>
-              <li><Link to="/goals" className="hover:text-primary transition-colors">Financial Goals</Link></li>
-              <li><Link to="/spending" className="hover:text-primary transition-colors">Spending Analysis</Link></li>
+              <li>
+                <Link to="/dashboard" className={cn("rounded-sm hover:text-primary transition-colors", focusRingClasses)}>
+                  Dashboard
+                </Link>
+              </li>
+              <li>
+                <Link to="/progress" className={cn("rounded-sm hover:text-primary transition-colors", focusRingClasses)}>
+                  Progress Tracker
+                </Link>
+              </li>
+              <li>
+                <Link to="/goals" className={cn("rounded-sm hover:text-primary transition-colors", focusRingClasses)}>
+                  Financial Goals
+                </Link>
+              </li>
+              <li>
+                <Link to="/spending" className={cn("rounded-sm hover:text-primary transition-colors", focusRingClasses)}>
+                  Spending Analysis
+                </Link>
+              </li>
             </ul>
           </div>
           <div>
             <h4 className="mb-4 text-sm font-semibold uppercase tracking-wider text-foreground/80">Support</h4>
             <ul className="space-y-2 text-sm text-muted-foreground">
-              <li><Link to="/help-center" className="hover:text-primary transition-colors">Help Center</Link></li>
-              <li><Link to="/privacy-policy" className="hover:text-primary transition-colors">Privacy Policy</Link></li>
-              <li><Link to="/terms-of-service" className="hover:text-primary transition-colors">Terms of Service</Link></li>
+              <li>
+                <Link to="/help-center" className={cn("rounded-sm hover:text-primary transition-colors", focusRingClasses)}>
+                  Help Center
+                </Link>
+              </li>
+              <li>
+                <Link to="/privacy-policy" className={cn("rounded-sm hover:text-primary transition-colors", focusRingClasses)}>
+                  Privacy Policy
+                </Link>
+              </li>
+              <li>
+                <Link to="/terms-of-service" className={cn("rounded-sm hover:text-primary transition-colors", focusRingClasses)}>
+                  Terms of Service
+                </Link>
+              </li>
             </ul>
           </div>
           <div className="space-y-4">
             <h4 className="text-sm font-semibold uppercase tracking-wider text-foreground/80">Stay Motivated</h4>
             <p className="text-sm text-muted-foreground">Join 10,000+ prospective homeowners on their journey.</p>
             <div className="flex gap-2">
-              <Link to="/dashboard" className="inline-flex h-9 items-center justify-center rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90">
+              <Link
+                to="/dashboard"
+                className={cn(
+                  "inline-flex h-9 items-center justify-center rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90",
+                  focusRingClasses
+                )}
+              >
                 Get Started
               </Link>
             </div>

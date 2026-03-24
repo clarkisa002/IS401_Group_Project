@@ -3,12 +3,13 @@ import { Button } from "@/components/ui/button";
 import { useUserData } from "@/hooks/use-user-data";
 import { ArrowRight, Users, Lightbulb, Home, TrendingUp, ChevronRight } from "lucide-react";
 import { Link } from "react-router-dom";
-import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, Tooltip, CartesianGrid, AreaChart, Area } from "recharts";
-import { motion } from "framer-motion";
-import { cn } from "@/lib/utils";
+import { ResponsiveContainer, XAxis, YAxis, Tooltip, CartesianGrid, AreaChart, Area } from "recharts";
+import { motion, useReducedMotion } from "framer-motion";
+import { cn, focusRingClasses, chartTheme } from "@/lib/utils";
 
 export default function Index() {
   const { data } = useUserData();
+  const reduceMotion = useReducedMotion();
 
   const chartData = data?.history.map(h => ({
     name: h.date,
@@ -21,16 +22,19 @@ export default function Index() {
       <section className="relative overflow-hidden py-16 md:py-24">
         <div className="container relative z-10">
           <div className="grid gap-12 lg:grid-cols-2 lg:items-center">
-            <motion.div 
-              initial={{ opacity: 0, x: -20 }}
+            <motion.div
+              initial={reduceMotion ? false : { opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.5 }}
+              transition={{ duration: reduceMotion ? 0 : 0.5 }}
               className="space-y-8"
             >
               <div className="inline-flex items-center gap-2 rounded-full bg-primary/10 px-4 py-1.5 text-sm font-semibold text-primary">
                 <span className="relative flex h-2 w-2">
-                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-primary opacity-75"></span>
-                  <span className="relative inline-flex h-2 w-2 rounded-full bg-primary"></span>
+                  <span
+                    className="absolute inline-flex h-full w-full animate-ping rounded-full bg-primary opacity-75 motion-reduce:animate-none"
+                    aria-hidden
+                  />
+                  <span className="relative inline-flex h-2 w-2 rounded-full bg-primary" aria-hidden />
                 </span>
                 Your Journey to Home Ownership
               </div>
@@ -53,26 +57,41 @@ export default function Index() {
               </div>
 
               <div className="grid grid-cols-2 gap-6 pt-4 sm:grid-cols-4">
-                <Link to="/dashboard" className="group flex flex-col items-center gap-3 text-center">
-                  <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white shadow-md transition-all group-hover:scale-110 group-hover:shadow-lg">
+                <Link
+                  to="/dashboard"
+                  className={cn(
+                    "group flex flex-col items-center gap-3 rounded-xl p-1 text-center",
+                    focusRingClasses
+                  )}
+                >
+                  <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white shadow-md transition-all group-hover:scale-110 group-hover:shadow-lg motion-reduce:transition-none motion-reduce:group-hover:scale-100">
                     <Users className="h-6 w-6 text-blue-500" />
                   </div>
                   <span className="text-sm font-medium">Join Our Home</span>
                 </Link>
-                <Link to="/dashboard" className="group flex flex-col items-center gap-3 text-center">
-                  <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white shadow-md transition-all group-hover:scale-110 group-hover:shadow-lg">
+                <Link
+                  to="/dashboard"
+                  className={cn("group flex flex-col items-center gap-3 rounded-xl p-1 text-center", focusRingClasses)}
+                >
+                  <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white shadow-md transition-all group-hover:scale-110 group-hover:shadow-lg motion-reduce:transition-none motion-reduce:group-hover:scale-100">
                     <Lightbulb className="h-6 w-6 text-amber-500" />
                   </div>
                   <span className="text-sm font-medium">Why Saving Leads</span>
                 </Link>
-                <Link to="/dashboard" className="group flex flex-col items-center gap-3 text-center">
-                  <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white shadow-md transition-all group-hover:scale-110 group-hover:shadow-lg">
+                <Link
+                  to="/dashboard"
+                  className={cn("group flex flex-col items-center gap-3 rounded-xl p-1 text-center", focusRingClasses)}
+                >
+                  <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white shadow-md transition-all group-hover:scale-110 group-hover:shadow-lg motion-reduce:transition-none motion-reduce:group-hover:scale-100">
                     <Home className="h-6 w-6 text-emerald-500" />
                   </div>
                   <span className="text-sm font-medium">Why You Own</span>
                 </Link>
-                <Link to="/progress" className="group flex flex-col items-center gap-3 text-center">
-                  <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white shadow-md transition-all group-hover:scale-110 group-hover:shadow-lg">
+                <Link
+                  to="/progress"
+                  className={cn("group flex flex-col items-center gap-3 rounded-xl p-1 text-center", focusRingClasses)}
+                >
+                  <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white shadow-md transition-all group-hover:scale-110 group-hover:shadow-lg motion-reduce:transition-none motion-reduce:group-hover:scale-100">
                     <TrendingUp className="h-6 w-6 text-primary" />
                   </div>
                   <span className="text-sm font-medium">View Progress</span>
@@ -80,10 +99,10 @@ export default function Index() {
               </div>
             </motion.div>
 
-            <motion.div 
-              initial={{ opacity: 0, scale: 0.95 }}
+            <motion.div
+              initial={reduceMotion ? false : { opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.5, delay: 0.2 }}
+              transition={{ duration: reduceMotion ? 0 : 0.5, delay: reduceMotion ? 0 : 0.2 }}
               className="relative"
             >
               <div className="absolute -inset-4 rounded-[2.5rem] bg-gradient-to-tr from-primary/20 via-primary/5 to-transparent blur-2xl" />
@@ -108,12 +127,12 @@ export default function Index() {
                           <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0}/>
                         </linearGradient>
                       </defs>
-                      <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
-                      <XAxis 
-                        dataKey="name" 
-                        axisLine={false} 
-                        tickLine={false} 
-                        tick={{ fill: '#64748b', fontSize: 12 }}
+                      <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={chartTheme.gridStroke} />
+                      <XAxis
+                        dataKey="name"
+                        axisLine={false}
+                        tickLine={false}
+                        tick={{ fill: chartTheme.tickFill, fontSize: 12 }}
                         dy={10}
                       />
                       <YAxis 
@@ -170,10 +189,13 @@ export default function Index() {
                 bg: "bg-orange-50"
               }
             ].map((stat, i) => (
-              <Link 
-                key={i} 
+              <Link
+                key={i}
                 to="/dashboard"
-                className="group relative rounded-2xl border bg-card p-6 transition-all hover:shadow-xl hover:-translate-y-1"
+                className={cn(
+                  "group relative rounded-2xl border bg-card p-6 transition-all hover:shadow-xl hover:-translate-y-1 motion-reduce:hover:translate-y-0 motion-reduce:transition-shadow",
+                  focusRingClasses
+                )}
               >
                 <div className="flex items-start justify-between">
                   <div className={cn("rounded-xl p-3", stat.bg)}>

@@ -19,7 +19,7 @@ import {
   Tooltip, 
   CartesianGrid
 } from "recharts";
-import { cn } from "@/lib/utils";
+import { cn, chartTheme } from "@/lib/utils";
 import { useSessionQuote } from "@/hooks/use-session-quote";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -247,18 +247,18 @@ export default function Dashboard() {
               <div className="h-[180px] w-full md:h-[220px]">
                 <ResponsiveContainer width="100%" height="100%">
                   <LineChart data={chartData}>
-                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
-                    <XAxis 
-                      dataKey="name" 
-                      axisLine={false} 
-                      tickLine={false} 
-                      tick={{ fill: '#64748b', fontSize: 11 }}
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={chartTheme.gridStroke} />
+                    <XAxis
+                      dataKey="name"
+                      axisLine={false}
+                      tickLine={false}
+                      tick={{ fill: chartTheme.tickFill, fontSize: 11 }}
                       dy={8}
                     />
-                    <YAxis 
-                      axisLine={false} 
-                      tickLine={false} 
-                      tick={{ fill: '#64748b', fontSize: 11 }}
+                    <YAxis
+                      axisLine={false}
+                      tickLine={false}
+                      tick={{ fill: chartTheme.tickFill, fontSize: 11 }}
                       domain={[0, 100]}
                     />
                     <Tooltip 
@@ -270,7 +270,7 @@ export default function Dashboard() {
                       dataKey="score" 
                       stroke="hsl(var(--primary))" 
                       strokeWidth={3} 
-                      dot={{ r: 4, fill: 'hsl(var(--primary))', strokeWidth: 2, stroke: '#fff' }}
+                      dot={{ r: 4, fill: 'hsl(var(--primary))', strokeWidth: 2, stroke: 'hsl(var(--background))' }}
                       activeDot={{ r: 6, strokeWidth: 0 }}
                     />
                   </LineChart>
