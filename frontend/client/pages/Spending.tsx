@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { Layout } from "@/components/Layout";
 import { useUserData } from "@/hooks/use-user-data";
 import { AddExpenseDialog } from "@/components/AddExpenseDialog";
@@ -45,9 +45,14 @@ import {
 
 export default function SpendingPage() {
   const { data } = useUserData();
+  const expenseBreakdownRef = useRef<HTMLDivElement>(null);
   const [range, setRange] = useState<SpendingRange>("Last 30 Days");
   const [incomeDialogOpen, setIncomeDialogOpen] = useState(false);
   const [expenseDialogOpen, setExpenseDialogOpen] = useState(false);
+
+  const scrollToExpenseBreakdown = () => {
+    expenseBreakdownRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
 
   const spendingView = useMemo(() => {
     if (!data) return null;
@@ -160,7 +165,11 @@ export default function SpendingPage() {
         )}
 
         <div className="grid gap-8 lg:grid-cols-3">
-          <Card className="lg:col-span-2">
+          <Card
+            ref={expenseBreakdownRef}
+            id="spending-expense-breakdown"
+            className="lg:col-span-2 scroll-mt-24"
+          >
             <CardHeader>
               <CardTitle>Expense Categories</CardTitle>
               <CardDescription>
@@ -308,7 +317,13 @@ export default function SpendingPage() {
                 {topFixed.length === 0 && (
                   <p className="text-sm text-muted-foreground">No categories in this range.</p>
                 )}
-                <Button variant="ghost" className="w-full text-xs font-bold gap-1 text-muted-foreground">
+                <Button
+                  type="button"
+                  variant="ghost"
+                  className="w-full text-xs font-bold gap-1 text-muted-foreground"
+                  onClick={scrollToExpenseBreakdown}
+                  aria-label="Go to full expense category breakdown"
+                >
                   View full breakdown <ChevronRight className="h-3 w-3" />
                 </Button>
               </div>
