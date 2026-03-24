@@ -1,3 +1,15 @@
+export interface ExpenseTransaction {
+  category: string;
+  amount: number;
+  expense_date: string;
+}
+
+export interface IncomeTransaction {
+  amount: number;
+  income_date: string;
+  source?: string | null;
+}
+
 export interface UserData {
   name: string;
   avatar: string;
@@ -23,6 +35,9 @@ export interface UserData {
     amount: number;
     color: string;
   }[];
+  /** Raw rows for date-filtered spending views; empty when using demo fallback without DB. */
+  expenseTransactions: ExpenseTransaction[];
+  incomeTransactions: IncomeTransaction[];
   history: {
     date: string;
     score: number;
@@ -43,6 +58,12 @@ export interface UserData {
     icon: string;
   }[];
   streak: number;
+}
+
+function isoDaysAgo(days: number): string {
+  const d = new Date();
+  d.setDate(d.getDate() - days);
+  return d.toISOString().slice(0, 10);
 }
 
 export const DEMO_DATA: UserData = {
@@ -78,6 +99,22 @@ export const DEMO_DATA: UserData = {
     { category: "Entertainment/Fun", amount: 300, color: "#8b5cf6" },
     { category: "Utilities", amount: 200, color: "#ec4899" },
     { category: "Other", amount: 150, color: "#6b7280" },
+  ],
+  expenseTransactions: [
+    { category: "Rent/Housing", amount: 1800, expense_date: isoDaysAgo(3) },
+    { category: "Food & Dining", amount: 150, expense_date: isoDaysAgo(7) },
+    { category: "Food & Dining", amount: 120, expense_date: isoDaysAgo(12) },
+    { category: "Transportation", amount: 200, expense_date: isoDaysAgo(15) },
+    { category: "Entertainment/Fun", amount: 180, expense_date: isoDaysAgo(20) },
+    { category: "Utilities", amount: 200, expense_date: isoDaysAgo(25) },
+    { category: "Other", amount: 80, expense_date: isoDaysAgo(28) },
+    { category: "Transportation", amount: 200, expense_date: isoDaysAgo(45) },
+    { category: "Food & Dining", amount: 200, expense_date: isoDaysAgo(70) },
+  ],
+  incomeTransactions: [
+    { amount: 3500, income_date: isoDaysAgo(2), source: "Paycheck" },
+    { amount: 3500, income_date: isoDaysAgo(16), source: "Paycheck" },
+    { amount: 3500, income_date: isoDaysAgo(44), source: "Paycheck" },
   ],
   history: [
     { date: "2023-01", score: 45 },

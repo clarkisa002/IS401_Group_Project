@@ -1,23 +1,9 @@
 import { supabase } from "@/lib/supabase";
+import { getCategoryColor } from "@/lib/expense-category-colors";
 import type { UserData } from "@/lib/types";
 import { DEMO_DATA } from "@/lib/types";
 
 const MONTH_NAMES = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-
-const CATEGORY_COLORS: Record<string, string> = {
-  "Rent/Housing": "#3b82f6",
-  "Food & Dining": "#10b981",
-  "Transportation": "#f59e0b",
-  "Entertainment/Fun": "#8b5cf6",
-  "Utilities": "#ec4899",
-  "Other": "#6b7280",
-};
-
-const DEFAULT_CATEGORY_COLOR = "#6b7280";
-
-function getCategoryColor(category: string): string {
-  return CATEGORY_COLORS[category] ?? DEFAULT_CATEGORY_COLOR;
-}
 
 const GOAL_TYPE_ICON: Record<string, string> = {
   savings: "Target",
@@ -112,7 +98,7 @@ export async function fetchUserData(userId: string, userName: string): Promise<U
       .from("expenses")
       .select("category, amount, expense_date")
       .eq("user_id", userId)
-      .gte("expense_date", getDateMonthsAgo(6))
+      .gte("expense_date", getDateMonthsAgo(12))
       .lte("expense_date", new Date().toISOString().slice(0, 10)),
     supabase
       .from("income")
@@ -144,7 +130,8 @@ export async function fetchUserData(userId: string, userName: string): Promise<U
   const homePriceMin = parseFloat(readiness?.home_price_min ?? "320000");
   const creditScore = readiness?.credit_score ?? 700;
   const debt = parseFloat(readiness?.debt ?? "0");
-  const debtToIncomeRatio = parseFloat(readiness?.debt_to_income_ratio ?? "0") / 100 ?? 0;
+  const debtToIncomeRatio =
+    (parseFloat(readiness?.debt_to_income_ratio ?? "0") || 0) / 100;
   const incomeAnnual = parseFloat(readiness?.income ?? "0");
   const incomeStability = parseFloat(readiness?.income_stability ?? "85");
 
@@ -153,11 +140,23 @@ export async function fetchUserData(userId: string, userName: string): Promise<U
     ? totalIncomeFromRows / Math.max(1, uniqueMonths(incomeRows.map((r) => r.income_date)))
     : incomeAnnual / 12 || 85000 / 12;
 
-  const expenseByCategory = aggregateExpensesByCategory(expenses);
+  const expenseByCategory = aggregateExpensesByCategoryLast30Days(expenses);
   const expenseRows = Object.entries(expenseByCategory).map(([category, amount]) => ({
     category,
     amount,
     color: getCategoryColor(category),
+  }));
+
+  const expenseTransactions = expenses.map((e) => ({
+    category: e.category || "Other",
+    amount: parseFloat(e.amount),
+    expense_date: e.expense_date,
+  }));
+
+  const incomeTransactions = incomeRows.map((r) => ({
+    amount: parseFloat(r.amount),
+    income_date: r.income_date,
+    source: r.source,
   }));
 
   const monthlySavings = buildMonthlySavings(monthlyProgress, homePriceMin);
@@ -180,7 +179,6 @@ export async function fetchUserData(userId: string, userName: string): Promise<U
 
   const allocation = deriveAllocationFromGoals(goals, totalSaved);
 
-  const totalExpenses = expenseRows.reduce((s, e) => s + e.amount, 0);
   const computedIncome = incomeAnnual > 0 ? incomeAnnual : avgMonthlyIncome * 12;
   const computedDebtToIncome =
     computedIncome > 0 && debt > 0 ? (debt / (computedIncome / 12)) / 100 : debtToIncomeRatio;
@@ -202,6 +200,8 @@ export async function fetchUserData(userId: string, userName: string): Promise<U
     debt,
     debtToIncomeRatio: computedDebtToIncome || debtToIncomeRatio,
     expenses: expenseRows.length > 0 ? expenseRows : DEMO_DATA.expenses,
+    expenseTransactions,
+    incomeTransactions,
     history,
     goals: goalsForUserData,
     achievements: DEMO_DATA.achievements,
@@ -227,19 +227,30 @@ function uniqueMonths(dates: string[]): number {
   return set.size;
 }
 
-function aggregateExpensesByCategory(expenses: DbExpense[]): Record<string, number> {
+function aggregateExpensesByCategoryBetween(
+  expenses: DbExpense[],
+  startInclusive: string,
+  endInclusive: string
+): Record<string, number> {
   const byCategory: Record<string, number> = {};
-  const last30Days = new Date();
-  last30Days.setDate(last30Days.getDate() - 30);
-  const cutoff = last30Days.toISOString().slice(0, 10);
-
   for (const e of expenses) {
-    if (e.expense_date >= cutoff) {
+    if (e.expense_date >= startInclusive && e.expense_date <= endInclusive) {
       const cat = e.category || "Other";
       byCategory[cat] = (byCategory[cat] ?? 0) + parseFloat(e.amount);
     }
   }
   return byCategory;
+}
+
+function aggregateExpensesByCategoryLast30Days(expenses: DbExpense[]): Record<string, number> {
+  const end = new Date();
+  const start = new Date();
+  start.setDate(start.getDate() - 30);
+  return aggregateExpensesByCategoryBetween(
+    expenses,
+    start.toISOString().slice(0, 10),
+    end.toISOString().slice(0, 10)
+  );
 }
 
 function buildMonthlySavings(
@@ -420,7 +431,7 @@ export async function recalculateAndSaveReadinessScore(userId: string): Promise<
   const creditScore = readiness?.credit_score ?? 700;
   const debt = parseFloat(readiness?.debt ?? "0");
   const incomeAnnual = parseFloat(readiness?.income ?? "0");
-  const incomeStability = parseFloat(readiness?.income_stability ?? 50);
+  const incomeStability = parseFloat(readiness?.income_stability ?? "50");
 
   const totalIncomeFromRows = incomeRows.reduce((s, r) => s + parseFloat(r.amount), 0);
   const avgMonthlyIncome =
