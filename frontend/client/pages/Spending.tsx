@@ -1,8 +1,9 @@
-import { useMemo, useRef, useState } from "react";
+import { useMemo, useState } from "react";
 import { Layout } from "@/components/Layout";
 import { useUserData } from "@/hooks/use-user-data";
 import { AddExpenseDialog } from "@/components/AddExpenseDialog";
 import { AddIncomeDialog } from "@/components/AddIncomeDialog";
+import { ExpenseBreakdownDialog } from "@/components/ExpenseBreakdownDialog";
 import {
   PieChart as LucidePieChart,
   ArrowDownCircle,
@@ -35,6 +36,7 @@ import {
 import {
   aggregateExpensesForRange,
   expectedIncomeForPeriod,
+  filterExpenseTransactionsInRange,
   getDateRangeForSpending,
   isSpendingRange,
   rangeDescription,
@@ -45,14 +47,10 @@ import {
 
 export default function SpendingPage() {
   const { data } = useUserData();
-  const expenseBreakdownRef = useRef<HTMLDivElement>(null);
   const [range, setRange] = useState<SpendingRange>("Last 30 Days");
   const [incomeDialogOpen, setIncomeDialogOpen] = useState(false);
   const [expenseDialogOpen, setExpenseDialogOpen] = useState(false);
-
-  const scrollToExpenseBreakdown = () => {
-    expenseBreakdownRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
-  };
+  const [breakdownDialogOpen, setBreakdownDialogOpen] = useState(false);
 
   const spendingView = useMemo(() => {
     if (!data) return null;
@@ -98,6 +96,12 @@ export default function SpendingPage() {
       rangeBounds: bounds,
     };
   }, [data, range]);
+
+  const transactionsInRange = useMemo(() => {
+    if (!data?.expenseTransactions.length) return [];
+    const b = getDateRangeForSpending(range);
+    return filterExpenseTransactionsInRange(data.expenseTransactions, b.start, b.end);
+  }, [data?.expenseTransactions, range]);
 
   if (!data || !spendingView) return null;
 
@@ -165,11 +169,7 @@ export default function SpendingPage() {
         )}
 
         <div className="grid gap-8 lg:grid-cols-3">
-          <Card
-            ref={expenseBreakdownRef}
-            id="spending-expense-breakdown"
-            className="lg:col-span-2 scroll-mt-24"
-          >
+          <Card className="lg:col-span-2">
             <CardHeader>
               <CardTitle>Expense Categories</CardTitle>
               <CardDescription>
@@ -321,8 +321,14 @@ export default function SpendingPage() {
                   type="button"
                   variant="ghost"
                   className="w-full text-xs font-bold gap-1 text-muted-foreground"
-                  onClick={scrollToExpenseBreakdown}
-                  aria-label="Go to full expense category breakdown"
+                  disabled={!hasTx}
+                  title={
+                    hasTx
+                      ? "Open a detailed list of each expense in this period"
+                      : "Add expenses to see each entry by category and date"
+                  }
+                  onClick={() => setBreakdownDialogOpen(true)}
+                  aria-label="Open full expense breakdown by category and date"
                 >
                   View full breakdown <ChevronRight className="h-3 w-3" />
                 </Button>
@@ -408,6 +414,13 @@ export default function SpendingPage() {
 
       <AddIncomeDialog open={incomeDialogOpen} onOpenChange={setIncomeDialogOpen} />
       <AddExpenseDialog open={expenseDialogOpen} onOpenChange={setExpenseDialogOpen} />
+      <ExpenseBreakdownDialog
+        open={breakdownDialogOpen}
+        onOpenChange={setBreakdownDialogOpen}
+        chartRows={chartRows}
+        transactionsInRange={transactionsInRange}
+        rangeDescription={rangeDescription(range)}
+      />
     </Layout>
   );
 }

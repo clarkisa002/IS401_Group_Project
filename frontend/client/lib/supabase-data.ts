@@ -96,7 +96,7 @@ export async function fetchUserData(userId: string, userName: string): Promise<U
       .order("created_at", { ascending: false }),
     supabase
       .from("expenses")
-      .select("category, amount, expense_date")
+      .select("expense_id, category, amount, expense_date, description")
       .eq("user_id", userId)
       .gte("expense_date", getDateMonthsAgo(12))
       .lte("expense_date", new Date().toISOString().slice(0, 10)),
@@ -148,9 +148,11 @@ export async function fetchUserData(userId: string, userName: string): Promise<U
   }));
 
   const expenseTransactions = expenses.map((e) => ({
+    expense_id: e.expense_id,
     category: e.category || "Other",
     amount: parseFloat(e.amount),
     expense_date: e.expense_date,
+    description: e.description,
   }));
 
   const incomeTransactions = incomeRows.map((r) => ({

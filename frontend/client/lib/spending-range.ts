@@ -2,6 +2,17 @@ import { differenceInDays, startOfYear, subDays, subMonths } from "date-fns";
 import { getCategoryColor } from "@/lib/expense-category-colors";
 import type { ExpenseTransaction, IncomeTransaction } from "@/lib/types";
 
+/** Expense rows whose dates fall in [start, end] (inclusive ISO dates). */
+export function filterExpenseTransactionsInRange(
+  transactions: ExpenseTransaction[],
+  start: string,
+  end: string
+): ExpenseTransaction[] {
+  return transactions.filter(
+    (t) => t.expense_date >= start && t.expense_date <= end
+  );
+}
+
 export type SpendingRange = "Last 30 Days" | "Last 3 Months" | "Year to Date";
 
 export const SPENDING_RANGE_LABELS: SpendingRange[] = [

@@ -1,7 +1,10 @@
 export interface ExpenseTransaction {
+  /** Present for Supabase rows; demo rows may omit. */
+  expense_id?: string;
   category: string;
   amount: number;
   expense_date: string;
+  description?: string | null;
 }
 
 export interface IncomeTransaction {
@@ -101,15 +104,69 @@ export const DEMO_DATA: UserData = {
     { category: "Other", amount: 150, color: "#6b7280" },
   ],
   expenseTransactions: [
-    { category: "Rent/Housing", amount: 1800, expense_date: isoDaysAgo(3) },
-    { category: "Food & Dining", amount: 150, expense_date: isoDaysAgo(7) },
-    { category: "Food & Dining", amount: 120, expense_date: isoDaysAgo(12) },
-    { category: "Transportation", amount: 200, expense_date: isoDaysAgo(15) },
-    { category: "Entertainment/Fun", amount: 180, expense_date: isoDaysAgo(20) },
-    { category: "Utilities", amount: 200, expense_date: isoDaysAgo(25) },
-    { category: "Other", amount: 80, expense_date: isoDaysAgo(28) },
-    { category: "Transportation", amount: 200, expense_date: isoDaysAgo(45) },
-    { category: "Food & Dining", amount: 200, expense_date: isoDaysAgo(70) },
+    {
+      expense_id: "demo-1",
+      category: "Rent/Housing",
+      amount: 1800,
+      expense_date: isoDaysAgo(3),
+      description: "Monthly rent",
+    },
+    {
+      expense_id: "demo-2",
+      category: "Food & Dining",
+      amount: 150,
+      expense_date: isoDaysAgo(7),
+      description: "Groceries",
+    },
+    {
+      expense_id: "demo-3",
+      category: "Food & Dining",
+      amount: 120,
+      expense_date: isoDaysAgo(12),
+      description: "Restaurant",
+    },
+    {
+      expense_id: "demo-4",
+      category: "Transportation",
+      amount: 200,
+      expense_date: isoDaysAgo(15),
+      description: "Gas",
+    },
+    {
+      expense_id: "demo-5",
+      category: "Entertainment/Fun",
+      amount: 180,
+      expense_date: isoDaysAgo(20),
+      description: "Concert tickets",
+    },
+    {
+      expense_id: "demo-6",
+      category: "Utilities",
+      amount: 200,
+      expense_date: isoDaysAgo(25),
+      description: "Electric bill",
+    },
+    {
+      expense_id: "demo-7",
+      category: "Other",
+      amount: 80,
+      expense_date: isoDaysAgo(28),
+      description: null,
+    },
+    {
+      expense_id: "demo-8",
+      category: "Transportation",
+      amount: 200,
+      expense_date: isoDaysAgo(45),
+      description: "Oil change",
+    },
+    {
+      expense_id: "demo-9",
+      category: "Food & Dining",
+      amount: 200,
+      expense_date: isoDaysAgo(70),
+      description: "Bulk groceries",
+    },
   ],
   incomeTransactions: [
     { amount: 3500, income_date: isoDaysAgo(2), source: "Paycheck" },
