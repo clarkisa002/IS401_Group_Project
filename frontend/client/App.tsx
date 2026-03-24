@@ -20,12 +20,14 @@ import HelpCenter from "./pages/HelpCenter";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import TermsOfService from "./pages/TermsOfService";
 import { AuthProvider } from "@/hooks/use-auth";
+import { ColorSchemeProvider } from "@/hooks/use-color-scheme";
 import { RequireAuth } from "@/components/RequireAuth";
 
 const queryClient = new QueryClient();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
+    <ColorSchemeProvider>
     <TooltipProvider>
       <Toaster />
       <Sonner />
@@ -92,6 +94,7 @@ const App = () => (
         </AuthProvider>
       </BrowserRouter>
     </TooltipProvider>
+    </ColorSchemeProvider>
   </QueryClientProvider>
 );
 

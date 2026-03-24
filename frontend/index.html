@@ -4,6 +4,18 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Home Readiness Planner</title>
+    <script>
+      (function () {
+        try {
+          var k = "app-color-scheme";
+          var allowed = { slate: 1, forest: 1, violet: 1, warm: 1 };
+          var v = localStorage.getItem(k);
+          if (v && allowed[v]) {
+            document.documentElement.setAttribute("data-color-scheme", v);
+          }
+        } catch (e) {}
+      })();
+    </script>
   </head>
 
   <body>

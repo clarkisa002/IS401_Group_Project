@@ -13,4 +13,5 @@ export const focusRingClasses =
 export const chartTheme = {
   gridStroke: "hsl(var(--border))",
   tickFill: "hsl(var(--muted-foreground))",
+  series2: "hsl(var(--chart-series-2))",
 } as const;

@@ -154,9 +154,9 @@ export default function ProgressPage() {
                     yAxisId="right"
                     type="monotone" 
                     dataKey="costTrend" 
-                    stroke="#f59e0b" 
-                    strokeWidth={3} 
-                    dot={{ r: 4, fill: '#f59e0b' }} 
+                    stroke={chartTheme.series2}
+                    strokeWidth={3}
+                    dot={{ r: 4, fill: chartTheme.series2 }} 
                   />
                 </ComposedChart>
               </ResponsiveContainer>
