@@ -74,7 +74,9 @@ export function Layout({ children }: LayoutProps) {
               to={item.path}
               className={cn(
                 "flex h-12 w-12 items-center justify-center rounded-full transition-all",
-                isActive ? "bg-primary text-primary-foreground shadow-lg shadow-primary/20 scale-110" : "text-muted-foreground hover:bg-accent"
+                isActive
+                  ? "bg-primary text-primary-foreground shadow-lg shadow-primary/20 scale-110"
+                  : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
               )}
               aria-label={`${item.name}${isActive ? " (current page)" : ""}`}
               aria-current={isActive ? "page" : undefined}

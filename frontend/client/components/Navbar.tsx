@@ -51,11 +51,18 @@ export function Navbar() {
                 key={item.path}
                 to={item.path}
                 className={cn(
-                  "flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition-all hover:bg-accent",
-                  isActive ? "bg-primary text-white shadow-sm" : "text-muted-foreground"
+                  "group flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition-all",
+                  isActive
+                    ? "bg-primary text-white shadow-sm hover:bg-primary"
+                    : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
                 )}
               >
-                <Icon className={cn("h-4 w-4", isActive ? "text-white" : "text-muted-foreground")} />
+                <Icon
+                  className={cn(
+                    "h-4 w-4",
+                    isActive ? "text-white" : "text-muted-foreground group-hover:text-accent-foreground"
+                  )}
+                />
                 {item.name}
               </Link>
             );
