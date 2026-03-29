@@ -1,5 +1,6 @@
 import type { UserData } from "@/lib/types";
 import {
+  calculateReadinessScore,
   computeReadinessFactorScores,
   type ReadinessFactorId,
   type ReadinessScoreInputs,
@@ -8,19 +9,53 @@ import {
 /** Factor sub-score below this is considered “needs improvement” for recommendations. */
 const WEAK_SCORE_THRESHOLD = 68;
 
+/**
+ * When projecting “what if,” assume this factor reaches a strong level (0–100 scale)
+ * while all other factors stay as they are today.
+ */
+const WHAT_IF_TARGET_FACTOR_SCORE = 85;
+
 export interface ReadinessRecommendation {
   factorId: ReadinessFactorId;
-  /** 0–100 sub-score for this factor (why it was flagged). */
-  factorScore: number;
   /** Share of overall readiness score (e.g. 25 for 25%). */
   weightPercent: number;
+  /** Headline readiness if this factor alone improved to `WHAT_IF_TARGET_FACTOR_SCORE`. */
+  whatIfReadinessScore: number;
   title: string;
   description: string;
   /** 3–4 concrete steps */
   steps: string[];
 }
 
-type RecommendationBody = Omit<ReadinessRecommendation, "factorScore" | "weightPercent">;
+type RecommendationBody = Omit<ReadinessRecommendation, "weightPercent" | "whatIfReadinessScore">;
+
+/**
+ * Overall readiness (0–100) if `improvedFactorId` scored `targetFactorScore`,
+ * with every other factor unchanged. Same weighting as `calculateReadinessScore`.
+ */
+export function computeWhatIfReadinessScore(
+  inputs: ReadinessScoreInputs,
+  improvedFactorId: ReadinessFactorId,
+  targetFactorScore: number = WHAT_IF_TARGET_FACTOR_SCORE
+): number {
+  const factors = computeReadinessFactorScores(inputs);
+  let weighted = 0;
+  let weightSum = 0;
+  const cappedTarget = Math.min(100, Math.max(0, targetFactorScore));
+  for (const f of factors) {
+    const score = f.id === improvedFactorId ? cappedTarget : f.score;
+    weighted += score * f.weight;
+    weightSum += f.weight;
+  }
+  const total = weightSum > 0 ? weighted / weightSum : 50;
+  return Math.round(Math.max(0, Math.min(100, total)));
+}
+
+export interface ReadinessRecommendationsBundle {
+  recommendations: ReadinessRecommendation[];
+  /** Weighted readiness from your current inputs (same formula as the headline score). */
+  baselineReadinessScore: number;
+}
 
 /** Short labels for UI chips. */
 export const READINESS_FACTOR_LABELS: Record<ReadinessFactorId, string> = {
@@ -182,14 +217,14 @@ function buildRecommendation(id: ReadinessFactorId, inputs: ReadinessScoreInputs
 }
 
 /**
- * Returns up to `max` recommendations for the weakest applicable readiness factors,
- * ordered by factor weight (highest first), then by lowest factor score.
+ * Recommendations plus modeled baseline so “what-if” deltas use the same formula as the headline score.
  */
-export function getTopReadinessRecommendations(
+export function getReadinessRecommendationsBundle(
   data: UserData,
   max: number = 2
-): ReadinessRecommendation[] {
+): ReadinessRecommendationsBundle {
   const inputs = userDataToReadinessInputs(data);
+  const baselineReadinessScore = calculateReadinessScore(inputs);
   const factors = computeReadinessFactorScores(inputs);
 
   const weak = factors.filter((f) => {
@@ -202,9 +237,22 @@ export function getTopReadinessRecommendations(
     return a.score - b.score;
   });
 
-  return weak.slice(0, max).map((f) => ({
+  const recommendations = weak.slice(0, max).map((f) => ({
     ...buildRecommendation(f.id, inputs),
-    factorScore: Math.round(f.score),
     weightPercent: Math.round(f.weight * 100),
+    whatIfReadinessScore: computeWhatIfReadinessScore(inputs, f.id),
   }));
+
+  return {
+    recommendations,
+    baselineReadinessScore,
+  };
+}
+
+/** @deprecated Prefer getReadinessRecommendationsBundle for baseline + recommendations. */
+export function getTopReadinessRecommendations(
+  data: UserData,
+  max: number = 2
+): ReadinessRecommendation[] {
+  return getReadinessRecommendationsBundle(data, max).recommendations;
 }

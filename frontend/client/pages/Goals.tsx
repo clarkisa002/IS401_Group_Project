@@ -21,6 +21,7 @@ import {
   Briefcase,
   CheckCircle2,
   Sparkles,
+  ChevronDown,
   type LucideIcon,
 } from "lucide-react";
 import { 
@@ -57,9 +58,10 @@ import {
 } from "@/components/ui/alert-dialog";
 import { supabase } from "@/lib/supabase";
 import { updateGoalProgress, recalculateAndSaveReadinessScore } from "@/lib/supabase-data";
-import { getTopReadinessRecommendations, READINESS_FACTOR_LABELS } from "@/lib/readiness-recommendations";
+import { getReadinessRecommendationsBundle, READINESS_FACTOR_LABELS } from "@/lib/readiness-recommendations";
 import type { ReadinessFactorId } from "@/lib/supabase-data";
 import { toast } from "sonner";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 
 const RECOMMENDATION_ICONS: Record<ReadinessFactorId, LucideIcon> = {
   savingsProgress: TrendingUp,
@@ -99,6 +101,7 @@ export default function GoalsPage() {
   const [goalToContribute, setGoalToContribute] = useState<DbGoal | null>(null);
   const [contributeAmount, setContributeAmount] = useState("");
   const [contributing, setContributing] = useState(false);
+  const [recExpanded, setRecExpanded] = useState<Partial<Record<ReadinessFactorId, boolean>>>({});
 
   const fetchGoals = useCallback(async () => {
     if (!userId) return;
@@ -204,12 +207,14 @@ export default function GoalsPage() {
     }
   };
 
-  const recommendations = useMemo(
-    () => (data ? getTopReadinessRecommendations(data, 2) : []),
+  const recBundle = useMemo(
+    () => (data ? getReadinessRecommendationsBundle(data, 2) : null),
     [data]
   );
 
   if (!data) return null;
+
+  const { recommendations } = recBundle!;
 
   const allocationData = [
     { name: "Down Payment", value: data.savings.allocation.downPayment, color: "#3b82f6" },
@@ -456,28 +461,16 @@ export default function GoalsPage() {
               </button>
             </div>
 
-            {/* Recommendations — layout distinct from old two-tile cards */}
-            <section className="rounded-2xl border-2 border-dashed border-primary/25 bg-gradient-to-b from-primary/[0.07] via-background to-muted/20 p-1 shadow-inner">
-              <div className="rounded-[0.9rem] border border-border/60 bg-card/80 backdrop-blur-sm">
-                <div className="flex flex-col gap-1 border-b border-border/60 px-5 py-4 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
-                  <div className="flex items-start gap-3">
-                    <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-primary text-primary-foreground shadow-md shadow-primary/25">
-                      <Sparkles className="h-5 w-5" aria-hidden />
-                    </div>
-                    <div>
-                      <h2 className="text-lg font-bold tracking-tight">Personalized next steps</h2>
-                      <p className="text-sm text-muted-foreground">
-                        Pulled from your weakest readiness factors (max 2). Overall score:{" "}
-                        <span className="font-semibold text-foreground">{data.readinessScore}/100</span>
-                      </p>
-                    </div>
-                  </div>
-                  <Badge variant="secondary" className="w-fit shrink-0 font-mono text-xs">
-                    Live from your data
-                  </Badge>
+            {/* Recommendations */}
+            <section className="overflow-hidden rounded-2xl border border-border bg-gradient-to-b from-primary/[0.07] via-background to-muted/20">
+              <div className="flex items-center gap-3 border-b border-border/60 bg-card/80 px-5 py-4 backdrop-blur-sm">
+                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-primary text-primary-foreground shadow-md shadow-primary/25">
+                  <Sparkles className="h-5 w-5" aria-hidden />
                 </div>
+                <h2 className="text-lg font-bold tracking-tight">Personalized next steps</h2>
+              </div>
 
-                <div className="space-y-4 p-5">
+              <div className="space-y-4 bg-card/80 p-5 backdrop-blur-sm">
                   {recommendations.length === 0 ? (
                     <div className="flex gap-4 rounded-xl border border-emerald-500/20 bg-emerald-500/[0.06] p-4">
                       <CheckCircle2 className="h-10 w-10 shrink-0 text-emerald-600" aria-hidden />
@@ -492,70 +485,91 @@ export default function GoalsPage() {
                       </div>
                     </div>
                   ) : (
-                    <ol className="space-y-4">
+                    <ol className="space-y-3">
                       {recommendations.map((rec, index) => {
                         const Icon = RECOMMENDATION_ICONS[rec.factorId];
+                        const open = !!recExpanded[rec.factorId];
                         return (
                           <li
                             key={rec.factorId}
                             className="relative overflow-hidden rounded-xl border bg-background shadow-sm ring-1 ring-border/80"
                           >
                             <div className="absolute left-0 top-0 h-full w-1 bg-primary" aria-hidden />
-                            <div className="pl-5 pr-4 py-4 sm:pl-6">
-                              <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-                                <div className="flex min-w-0 flex-1 gap-3">
-                                  <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary/15 text-sm font-black text-primary">
+                            <Collapsible
+                              open={open}
+                              onOpenChange={(next) =>
+                                setRecExpanded((prev) => ({ ...prev, [rec.factorId]: next }))
+                              }
+                            >
+                              <CollapsibleTrigger asChild>
+                                <button
+                                  type="button"
+                                  aria-expanded={open}
+                                  aria-label={`${rec.title}. ${open ? "Hide action steps" : "Show action steps"}`}
+                                  className={cn(
+                                    "group flex w-full items-start gap-2 py-3 pl-5 pr-2 text-left transition-colors hover:bg-muted/35 sm:gap-3 sm:pl-6 sm:pr-3",
+                                    "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+                                  )}
+                                >
+                                  <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary/15 text-xs font-black text-primary">
                                     {index + 1}
                                   </span>
-                                  <div className="min-w-0 space-y-2">
-                                    <div className="flex flex-wrap items-center gap-2">
-                                      <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-muted">
-                                        <Icon className="h-5 w-5 text-primary" aria-hidden />
-                                      </div>
-                                      <Badge variant="outline" className="text-[11px] font-normal">
+                                  <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-muted sm:h-8 sm:w-8">
+                                    <Icon className="h-4 w-4 text-primary sm:h-[18px] sm:w-[18px]" aria-hidden />
+                                  </div>
+                                  <div className="min-w-0 flex-1 space-y-1.5">
+                                    <div className="flex flex-wrap items-center gap-1.5">
+                                      <Badge variant="outline" className="text-[10px] font-normal px-1.5 py-0">
                                         {READINESS_FACTOR_LABELS[rec.factorId]}
                                       </Badge>
-                                      <span className="text-[11px] text-muted-foreground">
-                                        ~{rec.weightPercent}% of readiness score
+                                      <span className="text-[10px] text-muted-foreground">
+                                        ~{rec.weightPercent}% of score
                                       </span>
                                     </div>
-                                    <h3 className="text-base font-bold leading-tight">{rec.title}</h3>
-                                    <p className="text-sm text-muted-foreground leading-relaxed">{rec.description}</p>
-                                    <div className="space-y-1">
-                                      <div className="flex items-center justify-between text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
-                                        <span>Factor strength</span>
-                                        <span className="tabular-nums text-foreground">{rec.factorScore}/100</span>
-                                      </div>
-                                      <Progress value={rec.factorScore} className="h-2" />
-                                    </div>
+                                    <h3 className="text-sm font-bold leading-snug">{rec.title}</h3>
+                                    <p className="text-xs text-muted-foreground leading-snug">{rec.description}</p>
                                   </div>
+                                  <div className="flex max-w-[9.5rem] shrink-0 flex-col items-end gap-1 text-right sm:max-w-[11rem]">
+                                    <p className="text-[9px] leading-tight text-muted-foreground sm:text-[10px]">
+                                      By taking this step your Home Readiness score will increase to:
+                                    </p>
+                                    <p className="font-bold tabular-nums leading-none text-primary">
+                                      <span className="text-lg sm:text-xl">{rec.whatIfReadinessScore}</span>
+                                      <span className="text-[10px] font-medium text-muted-foreground"> /100</span>
+                                    </p>
+                                  </div>
+                                  <ChevronDown
+                                    className={cn(
+                                      "mt-0.5 h-4 w-4 shrink-0 text-muted-foreground transition-transform duration-200",
+                                      open && "rotate-180"
+                                    )}
+                                    aria-hidden
+                                  />
+                                </button>
+                              </CollapsibleTrigger>
+                              <CollapsibleContent className="overflow-hidden">
+                                <div className="border-t border-border/60 px-3 pb-3 pl-[4.25rem] pr-4 pt-2 sm:pl-[4.75rem]">
+                                  <p className="mb-2 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+                                    Try these steps
+                                  </p>
+                                  <ul className="space-y-2">
+                                    {rec.steps.map((step, i) => (
+                                      <li key={i} className="flex gap-2 text-sm leading-snug">
+                                        <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded bg-primary/10 text-[10px] font-bold text-primary">
+                                          {i + 1}
+                                        </span>
+                                        <span>{step}</span>
+                                      </li>
+                                    ))}
+                                  </ul>
                                 </div>
-                              </div>
-                              <div className="mt-4 rounded-lg bg-muted/40 p-3 sm:ml-11">
-                                <p className="mb-2 text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
-                                  Try these steps
-                                </p>
-                                <ul className="space-y-2">
-                                  {rec.steps.map((step, i) => (
-                                    <li key={i} className="flex gap-2 text-sm leading-snug">
-                                      <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded bg-primary/10 text-[10px] font-bold text-primary">
-                                        {i + 1}
-                                      </span>
-                                      <span>{step}</span>
-                                    </li>
-                                  ))}
-                                </ul>
-                              </div>
-                            </div>
+                              </CollapsibleContent>
+                            </Collapsible>
                           </li>
                         );
                       })}
                     </ol>
                   )}
-                  <Button className="w-full" variant="secondary" asChild>
-                    <Link to="/dashboard">Open Dashboard &amp; snapshot</Link>
-                  </Button>
-                </div>
               </div>
             </section>
           </div>
