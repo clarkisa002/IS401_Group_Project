@@ -1,5 +1,6 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Layout } from "@/components/Layout";
+import { UserDataPageShell, useRequiredUserData } from "@/components/UserDataPageShell";
 import { useUserData } from "@/hooks/use-user-data";
 import { Link } from "react-router-dom";
 import type { Achievement } from "@/lib/types";
@@ -8,6 +9,7 @@ import {
   Wallet,
   ArrowUpRight,
   Info,
+  HelpCircle,
   Download,
   RefreshCcw,
   Target,
@@ -43,6 +45,12 @@ import {
 import { FinancialSnapshotForm } from "@/components/FinancialSnapshotForm";
 import { Progress } from "@/components/ui/progress";
 import { motion } from "framer-motion";
+import { calculateReadinessScore, computeReadinessFactorScores } from "@/lib/supabase-data";
+import {
+  getReadinessRecommendationsBundle,
+  READINESS_FACTOR_LABELS,
+  userDataToReadinessInputs,
+} from "@/lib/readiness-recommendations";
 
 const BADGE_ICONS: Record<string, LucideIcon> = {
   Target,
@@ -56,13 +64,21 @@ const BADGE_ICONS: Record<string, LucideIcon> = {
   Flame,
 };
 
-export default function Dashboard() {
-  const { data, refreshData, exportData } = useUserData();
-  const quote = useSessionQuote(data?.readinessScore ?? 0);
+function DashboardContent() {
+  const data = useRequiredUserData();
+  const { refreshData, exportData } = useUserData();
+  const quote = useSessionQuote(data.readinessScore);
   const [snapshotDialogOpen, setSnapshotDialogOpen] = useState(false);
+  const [scoreExplainOpen, setScoreExplainOpen] = useState(false);
   const [badgeDetail, setBadgeDetail] = useState<Achievement | null>(null);
 
-  if (!data) return null;
+  const scoreExplain = useMemo(() => {
+    const inputs = userDataToReadinessInputs(data);
+    const factors = computeReadinessFactorScores(inputs);
+    const calculated = calculateReadinessScore(inputs);
+    const recBundle = getReadinessRecommendationsBundle(data, 3);
+    return { factors, calculated, recBundle };
+  }, [data]);
 
   const savingsProgress =
     data.savings.target > 0 ? (data.savings.total / data.savings.target) * 100 : 0;
@@ -84,12 +100,6 @@ export default function Dashboard() {
     return "text-destructive";
   };
 
-  const getScoreBg = (score: number) => {
-    if (score >= 70) return "bg-emerald-500";
-    if (score >= 40) return "bg-amber-500";
-    return "bg-destructive";
-  };
-
   const getScoreLabel = (score: number) => {
     if (score >= 70) return "Making Good Progress";
     if (score >= 40) return "On Your Way";
@@ -100,31 +110,13 @@ export default function Dashboard() {
     name: h.date,
     score: h.score,
   }));
+  const hasReadableScoreHistory = data.history.length >= 2;
 
   return (
-    <Layout>
+    <>
       <div className="container py-8 space-y-8">
         <header className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
-          <div className="space-y-2">
-            <div className="flex items-center gap-3">
-              <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
-              <div
-                className={cn(
-                  "rounded-full border bg-background/60 px-3 py-1.5 text-xs font-bold uppercase tracking-wider",
-                  data.readinessScore >= 70
-                    ? "border-emerald-500/20 text-emerald-600"
-                    : data.readinessScore >= 40
-                      ? "border-amber-500/20 text-amber-600"
-                      : "border-destructive/20 text-destructive"
-                )}
-              >
-                Readiness: {data.readinessScore}/100
-              </div>
-            </div>
-            <p className="text-muted-foreground">
-              A clean view of what matters now: your readiness score, trends, and next actions.
-            </p>
-          </div>
+          <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
           <div className="flex flex-wrap gap-2 md:justify-end">
             <Button variant="outline" size="sm" onClick={() => setSnapshotDialogOpen(true)} className="gap-2">
               <Info className="h-4 w-4" /> Edit financial snapshot
@@ -139,7 +131,7 @@ export default function Dashboard() {
         </header>
 
         {/* Readiness Score (primary focal point) */}
-        <Card className="overflow-hidden border border-primary/10 shadow-xl bg-gradient-to-br from-primary/8 via-primary/5 to-transparent">
+        <Card className="surface-hero">
           <CardContent className="p-8 md:p-10">
             <div className="grid gap-8 lg:grid-cols-12 lg:items-center">
               <div className="lg:col-span-5">
@@ -207,16 +199,26 @@ export default function Dashboard() {
                     </div>
                   </div>
 
-                  <div className="mt-6 space-y-3">
-                    <div
+                  <div className="mt-6 flex w-full max-w-xs flex-col items-center gap-3">
+                    <p
                       className={cn(
-                        "rounded-full px-6 py-2.5 text-sm md:text-base font-bold text-white shadow-lg w-fit",
-                        getScoreBg(data.readinessScore)
+                        "text-center text-sm font-semibold md:text-base",
+                        getScoreColor(data.readinessScore)
                       )}
                     >
                       {getScoreLabel(data.readinessScore)}
-                    </div>
-                    <Progress value={data.readinessScore} className="h-2" />
+                    </p>
+                    <Progress value={data.readinessScore} className="h-2 w-full" />
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      className="gap-2"
+                      onClick={() => setScoreExplainOpen(true)}
+                    >
+                      <HelpCircle className="h-4 w-4" aria-hidden />
+                      Understand my score
+                    </Button>
                   </div>
                 </div>
               </div>
@@ -240,20 +242,39 @@ export default function Dashboard() {
               </CardDescription>
             </CardHeader>
             <CardContent className="flex h-[180px] md:h-[220px] flex-col justify-center space-y-3 text-xs md:text-sm">
-              <p>
-                <span className="font-semibold text-emerald-600">Toward target:</span>{" "}
-                <span className="font-bold text-emerald-700">
-                  {Math.max(0, Math.min(100, Math.round(savingsProgress)))}%
-                </span>
-              </p>
-              <p>
-                <span className="font-semibold">Saved:</span>{" "}
-                <span className="font-medium">${data.savings.total.toLocaleString()}</span>
-              </p>
-              <p>
-                <span className="font-semibold">Target:</span>{" "}
-                <span className="font-medium">${data.savings.target.toLocaleString()}</span>
-              </p>
+              {data.savings.total <= 0 && data.savings.target > 0 ? (
+                <div className="space-y-3">
+                  <p className="text-muted-foreground leading-relaxed">
+                    You haven&apos;t recorded savings toward your target yet. Update your snapshot with current
+                    savings, or add contributions on Goals.
+                  </p>
+                  <div className="flex flex-wrap gap-2">
+                    <Button type="button" size="sm" variant="secondary" onClick={() => setSnapshotDialogOpen(true)}>
+                      Edit snapshot
+                    </Button>
+                    <Button type="button" size="sm" variant="outline" asChild>
+                      <Link to="/goals">Add to goals</Link>
+                    </Button>
+                  </div>
+                </div>
+              ) : (
+                <>
+                  <p>
+                    <span className="font-semibold text-emerald-600">Toward target:</span>{" "}
+                    <span className="font-bold text-emerald-700">
+                      {Math.max(0, Math.min(100, Math.round(savingsProgress)))}%
+                    </span>
+                  </p>
+                  <p>
+                    <span className="font-semibold">Saved:</span>{" "}
+                    <span className="font-medium">${data.savings.total.toLocaleString()}</span>
+                  </p>
+                  <p>
+                    <span className="font-semibold">Target:</span>{" "}
+                    <span className="font-medium">${data.savings.target.toLocaleString()}</span>
+                  </p>
+                </>
+              )}
             </CardContent>
           </Card>
 
@@ -274,36 +295,49 @@ export default function Dashboard() {
             </CardHeader>
             <CardContent>
               <div className="h-[180px] w-full md:h-[220px]">
-                <ResponsiveContainer width="100%" height="100%">
-                  <LineChart data={chartData}>
-                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={chartTheme.gridStroke} />
-                    <XAxis
-                      dataKey="name"
-                      axisLine={false}
-                      tickLine={false}
-                      tick={{ fill: chartTheme.tickFill, fontSize: 11 }}
-                      dy={8}
-                    />
-                    <YAxis
-                      axisLine={false}
-                      tickLine={false}
-                      tick={{ fill: chartTheme.tickFill, fontSize: 11 }}
-                      domain={[0, 100]}
-                    />
-                    <Tooltip 
-                      contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' }}
-                      cursor={{ stroke: 'hsl(var(--primary))', strokeWidth: 2, strokeDasharray: '5 5' }}
-                    />
-                    <Line 
-                      type="monotone" 
-                      dataKey="score" 
-                      stroke="hsl(var(--primary))" 
-                      strokeWidth={3} 
-                      dot={{ r: 4, fill: 'hsl(var(--primary))', strokeWidth: 2, stroke: 'hsl(var(--background))' }}
-                      activeDot={{ r: 6, strokeWidth: 0 }}
-                    />
-                  </LineChart>
-                </ResponsiveContainer>
+                {hasReadableScoreHistory ? (
+                  <ResponsiveContainer width="100%" height="100%">
+                    <LineChart data={chartData}>
+                      <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={chartTheme.gridStroke} />
+                      <XAxis
+                        dataKey="name"
+                        axisLine={false}
+                        tickLine={false}
+                        tick={{ fill: chartTheme.tickFill, fontSize: 11 }}
+                        dy={8}
+                      />
+                      <YAxis
+                        axisLine={false}
+                        tickLine={false}
+                        tick={{ fill: chartTheme.tickFill, fontSize: 11 }}
+                        domain={[0, 100]}
+                      />
+                      <Tooltip 
+                        contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' }}
+                        cursor={{ stroke: 'hsl(var(--primary))', strokeWidth: 2, strokeDasharray: '5 5' }}
+                      />
+                      <Line 
+                        type="monotone" 
+                        dataKey="score" 
+                        stroke="hsl(var(--primary))" 
+                        strokeWidth={3} 
+                        dot={{ r: 4, fill: 'hsl(var(--primary))', strokeWidth: 2, stroke: 'hsl(var(--background))' }}
+                        activeDot={{ r: 6, strokeWidth: 0 }}
+                      />
+                    </LineChart>
+                  </ResponsiveContainer>
+                ) : (
+                  <div className="flex h-full flex-col items-center justify-center gap-4 rounded-lg border border-dashed bg-muted/20 px-4 text-center">
+                    <p className="max-w-sm text-sm text-muted-foreground leading-relaxed">
+                      Your score history needs at least two points in time to draw a trend. Update your financial
+                      snapshot when your situation changes so we can log new scores.
+                    </p>
+                    <Button type="button" size="sm" className="gap-2" onClick={() => setSnapshotDialogOpen(true)}>
+                      <Info className="h-4 w-4" aria-hidden />
+                      Update financial snapshot
+                    </Button>
+                  </div>
+                )}
               </div>
             </CardContent>
           </Card>
@@ -327,7 +361,7 @@ export default function Dashboard() {
                       onClick={() => setBadgeDetail(achievement)}
                       className={cn(
                         "flex flex-col items-center gap-2 p-4 rounded-2xl border text-center transition-all w-[140px]",
-                        "hover:ring-2 hover:ring-primary/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+                        "hover:ring-2 hover:ring-primary/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background",
                         achievement.unlocked ? "bg-primary/5 border-primary/20" : "opacity-40 bg-muted grayscale"
                       )}
                     >
@@ -364,15 +398,31 @@ export default function Dashboard() {
               <div className="text-6xl font-black mb-2">{data.streak}</div>
               <div className="text-sm font-bold uppercase tracking-widest opacity-80">Months Strong</div>
               <p className="mt-6 text-sm leading-relaxed opacity-90">
-                You've consistently saved for {data.streak} months.
-                Keep it up to reach your goal by Dec 2025!
+                {data.streak > 0 ? (
+                  <>
+                    You&apos;ve consistently saved for {data.streak} months.
+                    {nextDeadlineText
+                      ? ` Keep it up to reach your next goal target by ${nextDeadlineText}.`
+                      : " Add target dates on your goals to see when you might hit your savings targets."}
+                  </>
+                ) : (
+                  <>
+                    No streak yet — we count consecutive months with positive net savings on your Progress page.
+                    Log monthly savings there to start a streak.
+                  </>
+                )}
               </p>
+              {data.streak === 0 && (
+                <Button type="button" variant="outline" size="sm" className="mt-4" asChild>
+                  <Link to="/progress">Go to Progress</Link>
+                </Button>
+              )}
             </CardContent>
           </Card>
         </div>
 
         {/* Call to Action Section */}
-        <Card className="bg-primary/5 border border-primary/20">
+        <Card className="surface-accent-soft">
           <CardContent className="flex flex-col md:flex-row items-center justify-between p-8 gap-6 text-center md:text-left">
             <div className="space-y-2">
               <p className="text-muted-foreground">
@@ -397,6 +447,115 @@ export default function Dashboard() {
             Update your credit score, income, debt, and savings snapshot.
           </DialogDescription>
           <FinancialSnapshotForm onSaved={() => setSnapshotDialogOpen(false)} />
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={scoreExplainOpen} onOpenChange={setScoreExplainOpen}>
+        <DialogContent className="max-h-[85vh] max-w-lg gap-4 overflow-y-auto">
+            <>
+              <DialogHeader>
+                <DialogTitle>How your score is built</DialogTitle>
+                <DialogDescription asChild>
+                  <div className="space-y-3 text-left text-sm leading-relaxed text-muted-foreground">
+                    <p>
+                      Your Home Readiness Score is{" "}
+                      <span className="font-semibold text-foreground">{data.readinessScore}</span> out of 100. We
+                      combine six financial signals—each scored from 0–100—using fixed weights, then average them.
+                      That mirrors how savings, credit, debt burden, and stability work together when you apply for
+                      a mortgage.
+                    </p>
+                    {Math.abs(scoreExplain.calculated - data.readinessScore) > 1 ? (
+                      <p>
+                        Recalculated from your current snapshot:{" "}
+                        <span className="font-medium text-foreground">{scoreExplain.calculated}</span>. If this
+                        differs from the big number above, use <strong>Refresh Data</strong> or update your{" "}
+                        <strong>financial snapshot</strong> so everything stays in sync.
+                      </p>
+                    ) : null}
+                  </div>
+                </DialogDescription>
+              </DialogHeader>
+
+              <div className="space-y-3">
+                <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                  Your factors
+                </p>
+                <ul className="space-y-3">
+                  {scoreExplain.factors.map((f) => {
+                    const pts = Math.round(f.score * f.weight);
+                    return (
+                      <li
+                        key={f.id}
+                        className="space-y-2 rounded-lg border border-border/80 bg-muted/30 p-3"
+                      >
+                        <div className="flex flex-wrap items-baseline justify-between gap-2">
+                          <span className="text-sm font-medium">{READINESS_FACTOR_LABELS[f.id]}</span>
+                          <span className="text-xs text-muted-foreground">
+                            {Math.round(f.weight * 100)}% weight · ~{pts} pts toward total
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Progress value={f.score} className="h-2 flex-1" />
+                          <span
+                            className={cn(
+                              "w-10 text-right text-xs font-semibold tabular-nums",
+                              getScoreColor(f.score)
+                            )}
+                          >
+                            {Math.round(f.score)}
+                          </span>
+                        </div>
+                      </li>
+                    );
+                  })}
+                </ul>
+              </div>
+
+              {scoreExplain.recBundle.recommendations.length > 0 ? (
+                <div className="space-y-3 border-t border-border pt-4">
+                  <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                    Strongest levers to improve
+                  </p>
+                  <p className="text-sm text-muted-foreground">
+                    These areas are below a strong threshold relative to the rest of your profile. Small wins here
+                    often move the overall score the most.
+                  </p>
+                  <ul className="space-y-4">
+                    {scoreExplain.recBundle.recommendations.map((r) => (
+                      <li
+                        key={r.factorId}
+                        className="space-y-2 rounded-lg bg-primary/5 p-3 text-sm dark:bg-primary/10"
+                      >
+                        <p className="font-semibold text-foreground">{r.title}</p>
+                        <p className="text-muted-foreground leading-relaxed">{r.description}</p>
+                        <ul className="list-disc space-y-1 pl-4 text-muted-foreground">
+                          {r.steps.slice(0, 3).map((step, i) => (
+                            <li key={i}>{step}</li>
+                          ))}
+                        </ul>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ) : (
+                <p className="border-t border-border pt-4 text-sm text-muted-foreground leading-relaxed">
+                  Every factor looks relatively strong right now. Keep logging income and expenses, update your
+                  snapshot when your situation changes, and keep saving toward your targets to hold or raise your
+                  score.
+                </p>
+              )}
+
+              <DialogFooter className="flex-col gap-2 sm:flex-row sm:justify-end">
+                <Button type="button" variant="outline" onClick={() => setScoreExplainOpen(false)}>
+                  Close
+                </Button>
+                <Button type="button" className="gap-1" asChild>
+                  <Link to="/goals" onClick={() => setScoreExplainOpen(false)}>
+                    Goals & more tips <ArrowUpRight className="h-4 w-4" aria-hidden />
+                  </Link>
+                </Button>
+              </DialogFooter>
+            </>
         </DialogContent>
       </Dialog>
 
@@ -457,6 +616,16 @@ export default function Dashboard() {
           )}
         </DialogContent>
       </Dialog>
+    </>
+  );
+}
+
+export default function Dashboard() {
+  return (
+    <Layout>
+      <UserDataPageShell>
+        <DashboardContent />
+      </UserDataPageShell>
     </Layout>
   );
 }

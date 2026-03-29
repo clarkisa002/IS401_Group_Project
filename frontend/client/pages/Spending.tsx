@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
+import { Link } from "react-router-dom";
 import { Layout } from "@/components/Layout";
-import { useUserData } from "@/hooks/use-user-data";
+import { UserDataPageShell, useRequiredUserData } from "@/components/UserDataPageShell";
 import { AddExpenseDialog } from "@/components/AddExpenseDialog";
 import { AddIncomeDialog } from "@/components/AddIncomeDialog";
 import { ExpenseBreakdownDialog } from "@/components/ExpenseBreakdownDialog";
@@ -15,6 +16,8 @@ import {
   DollarSign,
   Wallet,
   CreditCard,
+  Target,
+  type LucideIcon,
 } from "lucide-react";
 import {
   ResponsiveContainer,
@@ -44,16 +47,66 @@ import {
   sumIncomeInRange,
   type SpendingRange,
 } from "@/lib/spending-range";
+import {
+  buildBudgetRecommendations,
+  type BudgetRecAction,
+  type BudgetRecIcon,
+} from "@/lib/spending-budget-recommendations";
 
-export default function SpendingPage() {
-  const { data } = useUserData();
+const BUDGET_REC_ICONS: Record<BudgetRecIcon, LucideIcon> = {
+  alert: AlertCircle,
+  trending: TrendingDown,
+  pie: LucidePieChart,
+  wallet: Wallet,
+  target: Target,
+};
+
+function SpendingBudgetRecActionButton({
+  action,
+  actionLabel,
+  onOpenExpense,
+  onOpenIncome,
+  onOpenBreakdown,
+}: {
+  action: BudgetRecAction;
+  actionLabel: string;
+  onOpenExpense: () => void;
+  onOpenIncome: () => void;
+  onOpenBreakdown: () => void;
+}) {
+  if (action.kind === "none") {
+    return null;
+  }
+  if (action.kind === "link") {
+    return (
+      <Button variant="link" className="h-auto p-0 text-xs font-bold text-primary" asChild>
+        <Link to={action.href}>
+          {actionLabel} <ChevronRight className="ml-1 h-3 w-3" aria-hidden />
+        </Link>
+      </Button>
+    );
+  }
+  const onClick =
+    action.kind === "openExpenseDialog"
+      ? onOpenExpense
+      : action.kind === "openIncomeDialog"
+        ? onOpenIncome
+        : onOpenBreakdown;
+  return (
+    <Button type="button" variant="link" className="h-auto p-0 text-xs font-bold text-primary" onClick={onClick}>
+      {actionLabel} <ChevronRight className="ml-1 h-3 w-3" aria-hidden />
+    </Button>
+  );
+}
+
+function SpendingContent() {
+  const data = useRequiredUserData();
   const [range, setRange] = useState<SpendingRange>("Last 30 Days");
   const [incomeDialogOpen, setIncomeDialogOpen] = useState(false);
   const [expenseDialogOpen, setExpenseDialogOpen] = useState(false);
   const [breakdownDialogOpen, setBreakdownDialogOpen] = useState(false);
 
   const spendingView = useMemo(() => {
-    if (!data) return null;
     const hasTx = data.expenseTransactions.length > 0;
     const bounds = getDateRangeForSpending(range);
     if (!hasTx) {
@@ -98,12 +151,45 @@ export default function SpendingPage() {
   }, [data, range]);
 
   const transactionsInRange = useMemo(() => {
-    if (!data?.expenseTransactions.length) return [];
+    if (!data.expenseTransactions.length) return [];
     const b = getDateRangeForSpending(range);
     return filterExpenseTransactionsInRange(data.expenseTransactions, b.start, b.end);
-  }, [data?.expenseTransactions, range]);
+  }, [data.expenseTransactions, range]);
 
-  if (!data || !spendingView) return null;
+  const savingsOpportunities = useMemo(() => {
+    if (!spendingView) return [];
+    return [...spendingView.chartRows]
+      .filter((r) => r.amount > 0)
+      .sort((a, b) => b.amount - a.amount)
+      .slice(0, 3)
+      .map((row) => ({
+        title: `Review ${row.category}`,
+        amount: row.amount,
+      }));
+  }, [spendingView]);
+
+  const budgetRecommendations = useMemo(() => {
+    if (!spendingView) return [];
+    const net = spendingView.periodIncomeActual - spendingView.totalExpenses;
+    return buildBudgetRecommendations({
+      rangeLabel: rangeDescription(range),
+      hasTx: spendingView.hasTx,
+      chartRows: spendingView.chartRows,
+      totalExpenses: spendingView.totalExpenses,
+      periodIncomeActual: spendingView.periodIncomeActual,
+      periodIncomeExpected: spendingView.periodIncomeExpected,
+      netCashFlow: net,
+      overspentVsExpected: spendingView.totalExpenses > spendingView.periodIncomeExpected,
+      annualIncome: data.income,
+      debt: data.debt,
+      debtToIncomeRatio: data.debtToIncomeRatio,
+      savingsTotal: data.savings.total,
+      savingsTarget: data.savings.target,
+      expenseTransactionCount: transactionsInRange.length,
+    });
+  }, [spendingView, range, data, transactionsInRange.length]);
+
+  if (!spendingView) return null;
 
   const { chartRows, totalExpenses, periodIncomeActual, periodIncomeExpected, hasTx } =
     spendingView;
@@ -117,17 +203,11 @@ export default function SpendingPage() {
         ? "text-amber-600"
         : "text-destructive";
 
-  const savingsOpportunities = [
-    { title: "Reduce Dining Out", amount: 200, icon: "🍔" },
-    { title: "Cancel Unused Subs", amount: 45, icon: "📺" },
-    { title: "Switch Insurance", amount: 80, icon: "🛡️" },
-  ];
-
   const topFixed = chartRows.slice(0, 3);
   const expenseTotalClass = overspentVsExpected ? "text-destructive" : "text-foreground";
 
   return (
-    <Layout>
+    <>
       <div className="container py-8 space-y-8">
         <header className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
           <div>
@@ -163,9 +243,20 @@ export default function SpendingPage() {
           </div>
         </header>
         {!hasTx && (
-          <p className="text-sm text-muted-foreground rounded-lg border bg-muted/30 px-4 py-3">
-            Add expenses to enable time-range filters. Showing your latest category totals below.
-          </p>
+          <div className="flex flex-col gap-3 rounded-lg border bg-muted/30 px-4 py-4 sm:flex-row sm:items-center sm:justify-between">
+            <p className="text-sm text-muted-foreground leading-relaxed">
+              Add itemized expenses to unlock time-range filters and more accurate charts. Until then, totals below
+              use your latest category rollups.
+            </p>
+            <div className="flex shrink-0 flex-wrap gap-2">
+              <Button type="button" size="sm" onClick={() => setExpenseDialogOpen(true)}>
+                Add expense
+              </Button>
+              <Button type="button" size="sm" variant="outline" asChild>
+                <Link to="/settings">Settings</Link>
+              </Button>
+            </div>
+          </div>
         )}
 
         <div className="grid gap-8 lg:grid-cols-3">
@@ -209,8 +300,22 @@ export default function SpendingPage() {
                       </PieChart>
                     </ResponsiveContainer>
                   ) : (
-                    <div className="flex h-full items-center justify-center text-sm text-muted-foreground">
-                      No expenses in this period.
+                    <div className="flex h-full flex-col items-center justify-center gap-4 px-4 text-center">
+                      <p className="max-w-xs text-sm text-muted-foreground leading-relaxed">
+                        {hasTx
+                          ? "No spending in this date range. Try another range or add expenses that fall inside it."
+                          : "No category amounts to show yet. Add expenses to build your spending picture."}
+                      </p>
+                      <div className="flex flex-wrap justify-center gap-2">
+                        <Button type="button" size="sm" onClick={() => setExpenseDialogOpen(true)}>
+                          Add expense
+                        </Button>
+                        {!hasTx && (
+                          <Button type="button" size="sm" variant="outline" onClick={() => setIncomeDialogOpen(true)}>
+                            Add income
+                          </Button>
+                        )}
+                      </div>
                     </div>
                   )}
                 </div>
@@ -315,7 +420,15 @@ export default function SpendingPage() {
                   </div>
                 ))}
                 {topFixed.length === 0 && (
-                  <p className="text-sm text-muted-foreground">No categories in this range.</p>
+                  <div className="space-y-3 rounded-lg border border-dashed bg-muted/20 p-4">
+                    <p className="text-sm text-muted-foreground leading-relaxed">
+                      No categories to rank for this range. Add expenses (or pick a wider range) to see your top
+                      spending areas.
+                    </p>
+                    <Button type="button" size="sm" onClick={() => setExpenseDialogOpen(true)}>
+                      Add expense
+                    </Button>
+                  </div>
                 )}
                 <Button
                   type="button"
@@ -345,69 +458,71 @@ export default function SpendingPage() {
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                {savingsOpportunities.map((opp, i) => (
-                  <div
-                    key={i}
-                    className="flex items-center justify-between p-3 rounded-lg border border-emerald-100 bg-background dark:border-emerald-900/50"
-                  >
-                    <div className="flex items-center gap-3">
-                      <span className="text-lg">{opp.icon}</span>
-                      <span className="text-sm font-medium text-emerald-900 dark:text-emerald-100">
-                        {opp.title}
+                {savingsOpportunities.length === 0 ? (
+                  <div className="space-y-3">
+                    <p className="text-sm text-muted-foreground leading-relaxed">
+                      Add expenses to see which categories are largest in this range—those are often the best places
+                      to trim.
+                    </p>
+                    <Button type="button" size="sm" variant="secondary" onClick={() => setExpenseDialogOpen(true)}>
+                      Add expense
+                    </Button>
+                  </div>
+                ) : (
+                  savingsOpportunities.map((opp, i) => (
+                    <div
+                      key={`${opp.title}-${i}`}
+                      className="flex items-center justify-between rounded-lg border border-emerald-100 bg-background p-3 dark:border-emerald-900/50"
+                    >
+                      <div className="flex items-center gap-3">
+                        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-200">
+                          <LucidePieChart className="h-4 w-4" aria-hidden />
+                        </span>
+                        <span className="text-sm font-medium text-emerald-900 dark:text-emerald-100">
+                          {opp.title}
+                        </span>
+                      </div>
+                      <span className="text-sm font-bold text-emerald-600">
+                        ${opp.amount.toLocaleString()} spent
                       </span>
                     </div>
-                    <span className="text-sm font-bold text-emerald-600">
-                      +${opp.amount.toLocaleString()}
-                    </span>
-                  </div>
-                ))}
-                <Button className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold h-10">
-                  Implement All Savings
+                  ))
+                )}
+                <Button type="button" variant="outline" className="h-10 w-full font-semibold" asChild>
+                  <Link to="/goals">Review goals &amp; savings targets</Link>
                 </Button>
               </div>
             </CardContent>
           </Card>
         </div>
 
-        <Card className="bg-primary/5 border-primary/20">
+        <Card className="surface-accent-soft">
           <CardHeader>
-            <CardTitle>Budget Recommendations</CardTitle>
+            <CardTitle>Budget recommendations</CardTitle>
+            <CardDescription className="text-xs">
+              Based on this time range, your logged transactions, and your financial snapshot—not generic ads.
+            </CardDescription>
           </CardHeader>
           <CardContent className="grid gap-6 md:grid-cols-3">
-            {[
-              {
-                title: "Optimize Utilities",
-                desc: "Switching to smart thermostats could save you 10% on energy bills.",
-                action: "View Energy Tips",
-                icon: AlertCircle,
-                color: "text-blue-500",
-              },
-              {
-                title: "Refinance Student Loan",
-                desc: "Current rates are 1.5% lower than yours. Potential monthly savings: $85.",
-                action: "Check Eligibility",
-                icon: TrendingDown,
-                color: "text-emerald-500",
-              },
-              {
-                title: "Subscription Audit",
-                desc: "We found 2 overlapping streaming services you haven't used in 60 days.",
-                action: "Audit Now",
-                icon: LucidePieChart,
-                color: "text-amber-500",
-              },
-            ].map((rec, i) => (
-              <div key={i} className="space-y-3">
-                <div className="flex items-center gap-2">
-                  <rec.icon className={cn("h-4 w-4", rec.color)} />
-                  <h4 className="text-sm font-bold">{rec.title}</h4>
+            {budgetRecommendations.map((rec) => {
+              const RecIcon = BUDGET_REC_ICONS[rec.icon];
+              return (
+                <div key={rec.id} className="space-y-3">
+                  <div className="flex items-center gap-2">
+                    <RecIcon className="h-4 w-4 shrink-0 text-primary" aria-hidden />
+                    <h4 className="text-sm font-bold leading-snug">{rec.title}</h4>
+                  </div>
+                  <p className="text-xs text-muted-foreground leading-relaxed">{rec.description}</p>
+                  <SpendingBudgetRecActionButton
+                    action={rec.action}
+                    actionLabel={rec.actionLabel}
+                    onOpenExpense={() => setExpenseDialogOpen(true)}
+                    onOpenIncome={() => setIncomeDialogOpen(true)}
+                    onOpenBreakdown={() => setBreakdownDialogOpen(true)}
+                  />
                 </div>
-                <p className="text-xs text-muted-foreground leading-relaxed">{rec.desc}</p>
-                <Button variant="link" className="p-0 h-auto text-xs font-bold text-primary">
-                  {rec.action} <ChevronRight className="ml-1 h-3 w-3" />
-                </Button>
-              </div>
-            ))}
+              );
+            })}
           </CardContent>
         </Card>
       </div>
@@ -421,6 +536,16 @@ export default function SpendingPage() {
         transactionsInRange={transactionsInRange}
         rangeDescription={rangeDescription(range)}
       />
+    </>
+  );
+}
+
+export default function SpendingPage() {
+  return (
+    <Layout>
+      <UserDataPageShell>
+        <SpendingContent />
+      </UserDataPageShell>
     </Layout>
   );
 }

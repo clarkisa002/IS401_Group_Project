@@ -28,7 +28,8 @@ export default function PrivacyPolicy() {
       icon: Mail,
       id: "contact",
       title: "Contact",
-      content: "For questions about this Privacy Policy or your personal data, please contact us at support@homepath.example.com. We will respond within a reasonable timeframe.",
+      content:
+        "For questions about this Privacy Policy or your personal data, contact whoever operates this deployment of the app (for example your instructor, team lead, or support channel). Response times depend on that operator.",
     },
   ];
 

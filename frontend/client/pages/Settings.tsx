@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Layout } from "@/components/Layout";
+import { UserDataPageShell, useRequiredUserData } from "@/components/UserDataPageShell";
 import { useAuth } from "@/hooks/use-auth";
-import { useUserData } from "@/hooks/use-user-data";
 import {
   COLOR_SCHEMES,
   COLOR_SCHEME_SWATCHES,
@@ -16,19 +16,19 @@ import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { UserCircle2, Mail, Gauge, DollarSign, Receipt, Palette } from "lucide-react";
 
-export default function Settings() {
+function SettingsContent() {
   const { user } = useAuth();
-  const { data } = useUserData();
+  const data = useRequiredUserData();
   const { scheme, setScheme } = useColorScheme();
   const [incomeDialogOpen, setIncomeDialogOpen] = useState(false);
   const [expenseDialogOpen, setExpenseDialogOpen] = useState(false);
 
-  const displayName = user?.name || data?.name || "Guest User";
+  const displayName = user?.name || data.name || "Guest User";
   const displayEmail = user?.email || "No email available";
-  const readinessScore = data?.readinessScore ?? 0;
+  const readinessScore = data.readinessScore;
 
   return (
-    <Layout>
+    <>
       <div className="container py-8 space-y-6">
         <header className="space-y-2">
           <h1 className="text-3xl font-bold tracking-tight">User Settings</h1>
@@ -142,6 +142,16 @@ export default function Settings() {
 
       <AddIncomeDialog open={incomeDialogOpen} onOpenChange={setIncomeDialogOpen} />
       <AddExpenseDialog open={expenseDialogOpen} onOpenChange={setExpenseDialogOpen} />
+    </>
+  );
+}
+
+export default function Settings() {
+  return (
+    <Layout>
+      <UserDataPageShell>
+        <SettingsContent />
+      </UserDataPageShell>
     </Layout>
   );
 }

@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { Link } from "react-router-dom";
 import { Layout } from "@/components/Layout";
+import { UserDataPageShell, useRequiredUserData } from "@/components/UserDataPageShell";
 import { useUserData } from "@/hooks/use-user-data";
 import { useSessionQuote } from "@/hooks/use-session-quote";
 import { useAuth } from "@/hooks/use-auth";
@@ -32,7 +33,7 @@ import {
   Tooltip,
   Legend
 } from "recharts";
-import { cn } from "@/lib/utils";
+import { cn, focusRingClasses } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -83,11 +84,12 @@ interface DbGoal {
   created_at: string;
 }
 
-export default function GoalsPage() {
-  const { data, invalidateUserData } = useUserData();
+function GoalsContent() {
+  const data = useRequiredUserData();
+  const { invalidateUserData } = useUserData();
   const { user } = useAuth();
   const userId = user?.user_id;
-  const quote = useSessionQuote(data?.readinessScore ?? 0);
+  const quote = useSessionQuote(data.readinessScore);
   const [dbGoals, setDbGoals] = useState<DbGoal[]>([]);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -207,14 +209,29 @@ export default function GoalsPage() {
     }
   };
 
-  const recBundle = useMemo(
-    () => (data ? getReadinessRecommendationsBundle(data, 2) : null),
-    [data]
-  );
+  const recBundle = useMemo(() => getReadinessRecommendationsBundle(data, 2), [data]);
 
-  if (!data) return null;
+  const savingsTimelineProjection = useMemo(() => {
+    const months = data.savings.monthly;
+    const avg =
+      months.length > 0
+        ? months.reduce((acc, m) => acc + m.amount, 0) / months.length
+        : 0;
+    const remaining = Math.max(0, data.savings.target - data.savings.total);
+    if (avg <= 0 || remaining <= 0) return null;
+    const monthsStd = Math.ceil(remaining / avg);
+    const monthsOpt = Math.ceil(remaining / (avg * 1.1));
+    const standard = new Date();
+    standard.setMonth(standard.getMonth() + monthsStd);
+    const optimistic = new Date();
+    optimistic.setMonth(optimistic.getMonth() + monthsOpt);
+    return {
+      standardLabel: standard.toLocaleDateString(undefined, { month: "long", year: "numeric" }),
+      optimisticLabel: optimistic.toLocaleDateString(undefined, { month: "long", year: "numeric" }),
+    };
+  }, [data]);
 
-  const { recommendations } = recBundle!;
+  const { recommendations } = recBundle;
 
   const allocationData = [
     { name: "Down Payment", value: data.savings.allocation.downPayment, color: "#3b82f6" },
@@ -232,10 +249,10 @@ export default function GoalsPage() {
   };
 
   return (
-    <Layout>
+    <>
       <div className="container py-8 space-y-8">
         {/* Quote Card - same as Dashboard */}
-        <Card className="bg-primary/5 border border-primary/20">
+        <Card className="surface-accent-soft">
           <CardContent className="flex flex-col md:flex-row items-center justify-between p-8 gap-6 text-center md:text-left">
             <div className="space-y-2">
               <h3 className="text-2xl font-bold italic font-serif text-foreground">
@@ -388,6 +405,27 @@ export default function GoalsPage() {
         <div className="grid gap-8 lg:grid-cols-3">
           {/* Goal Cards — from database */}
           <div className="lg:col-span-2 space-y-6">
+            {dbGoals.length === 0 ? (
+              <Card className="border-dashed bg-muted/20">
+                <CardContent className="flex flex-col items-center gap-4 py-12 text-center sm:flex-row sm:text-left">
+                  <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-primary/10 text-primary">
+                    <Target className="h-7 w-7" aria-hidden />
+                  </div>
+                  <div className="min-w-0 flex-1 space-y-2">
+                    <h2 className="text-lg font-semibold tracking-tight">Create your first goal</h2>
+                    <p className="text-sm text-muted-foreground leading-relaxed">
+                      Goals power your allocation chart, timeline, and fund-tracking on this page. Start with
+                      something concrete — for example a down payment, emergency fund, or closing costs — then add
+                      contributions as you save.
+                    </p>
+                    <Button type="button" className="mt-2 gap-2" onClick={() => setDialogOpen(true)}>
+                      <Plus className="h-4 w-4" aria-hidden />
+                      Set up new goal
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            ) : (
             <div className="grid gap-6 sm:grid-cols-2">
               {dbGoals.map((goal) => {
                 const Icon = getGoalIcon(goal);
@@ -460,9 +498,10 @@ export default function GoalsPage() {
                 <span className="font-bold text-muted-foreground group-hover:text-primary">Add New Goal</span>
               </button>
             </div>
+            )}
 
             {/* Recommendations */}
-            <section className="overflow-hidden rounded-2xl border border-border bg-gradient-to-b from-primary/[0.07] via-background to-muted/20">
+            <section className="surface-accent-soft overflow-hidden rounded-2xl">
               <div className="flex items-center gap-3 border-b border-border/60 bg-card/80 px-5 py-4 backdrop-blur-sm">
                 <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-primary text-primary-foreground shadow-md shadow-primary/25">
                   <Sparkles className="h-5 w-5" aria-hidden />
@@ -508,7 +547,7 @@ export default function GoalsPage() {
                                   aria-label={`${rec.title}. ${open ? "Hide action steps" : "Show action steps"}`}
                                   className={cn(
                                     "group flex w-full items-start gap-2 py-3 pl-5 pr-2 text-left transition-colors hover:bg-muted/35 sm:gap-3 sm:pl-6 sm:pr-3",
-                                    "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+                                    focusRingClasses
                                   )}
                                 >
                                   <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary/15 text-xs font-black text-primary">
@@ -630,22 +669,47 @@ export default function GoalsPage() {
                 <CardTitle>Timeline Projections</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="space-y-1">
-                  <p className="text-xs opacity-80 font-bold uppercase tracking-widest">Optimistic Scenario</p>
-                  <p className="text-xl font-bold">October 2025</p>
-                  <p className="text-[10px] opacity-70 italic">Assumes +10% monthly income</p>
-                </div>
-                <div className="space-y-1 pt-4 border-t border-white/10">
-                  <p className="text-xs opacity-80 font-bold uppercase tracking-widest">Standard Scenario</p>
-                  <p className="text-xl font-bold">December 2025</p>
-                  <p className="text-[10px] opacity-70 italic">Current savings rate maintained</p>
-                </div>
-                <Button variant="secondary" className="w-full mt-4 h-10 font-bold">Adjust Scenarios</Button>
+                {savingsTimelineProjection ? (
+                  <>
+                    <div className="space-y-1">
+                      <p className="text-xs opacity-80 font-bold uppercase tracking-widest">Faster pace</p>
+                      <p className="text-xl font-bold">{savingsTimelineProjection.optimisticLabel}</p>
+                      <p className="text-[10px] opacity-70 italic">
+                        If monthly savings run ~10% above your recent average
+                      </p>
+                    </div>
+                    <div className="space-y-1 border-t border-white/10 pt-4">
+                      <p className="text-xs opacity-80 font-bold uppercase tracking-widest">Current pace</p>
+                      <p className="text-xl font-bold">{savingsTimelineProjection.standardLabel}</p>
+                      <p className="text-[10px] opacity-70 italic">
+                        If you keep saving at your recent monthly average until the target is met
+                      </p>
+                    </div>
+                  </>
+                ) : (
+                  <p className="text-sm opacity-90 leading-relaxed">
+                    Add monthly savings in your progress data and a savings target to see rough “ready by” dates.
+                    Your dashboard snapshot helps keep targets current.
+                  </p>
+                )}
+                <Button variant="secondary" className="mt-4 h-10 w-full font-bold" asChild>
+                  <Link to="/dashboard">Review savings on Dashboard</Link>
+                </Button>
               </CardContent>
             </Card>
           </div>
         </div>
       </div>
+    </>
+  );
+}
+
+export default function GoalsPage() {
+  return (
+    <Layout>
+      <UserDataPageShell>
+        <GoalsContent />
+      </UserDataPageShell>
     </Layout>
   );
 }

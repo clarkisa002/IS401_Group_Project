@@ -71,8 +71,12 @@ export function Layout({ children }: LayoutProps) {
         {children}
       </main>
 
+      <p className="border-t border-border/60 bg-muted/25 px-4 py-3 text-center text-[11px] leading-snug text-muted-foreground md:hidden">
+        HomePath is for education only — not financial, legal, or tax advice.
+      </p>
+
       {/* Mobile Quick-Access Bottom Bar */}
-      <nav className="fixed bottom-6 left-1/2 z-50 flex -translate-x-1/2 items-center gap-1 rounded-full border bg-background/80 p-1.5 shadow-2xl backdrop-blur-md md:hidden" aria-label="Mobile navigation">
+      <nav className="fixed bottom-6 left-1/2 z-50 flex -translate-x-1/2 items-center gap-1 rounded-full border border-border/80 bg-background/85 p-1.5 shadow-hero backdrop-blur-md md:hidden" aria-label="Mobile navigation">
         {mobileNavItems.map((item) => {
           const Icon = item.icon;
           const isActive = location.pathname === item.path;
@@ -156,7 +160,9 @@ export function Layout({ children }: LayoutProps) {
           </div>
           <div className="space-y-4">
             <h4 className="text-sm font-semibold uppercase tracking-wider text-foreground/80">Stay Motivated</h4>
-            <p className="text-sm text-muted-foreground">Join 10,000+ prospective homeowners on their journey.</p>
+            <p className="text-sm text-muted-foreground">
+              Join others who are planning and saving for their first home.
+            </p>
             <div className="flex gap-2">
               <Link
                 to="/dashboard"
@@ -170,8 +176,12 @@ export function Layout({ children }: LayoutProps) {
             </div>
           </div>
         </div>
-        <div className="container mt-12 border-t pt-8 text-center text-sm text-muted-foreground">
-          © {new Date().getFullYear()} HomePath. All rights reserved. Built for future homeowners.
+        <div className="container mt-12 space-y-4 border-t pt-8 text-center text-sm text-muted-foreground">
+          <p className="mx-auto max-w-2xl text-xs leading-relaxed text-muted-foreground">
+            HomePath is an educational planning tool. It does not provide financial, legal, or tax advice. Always
+            consult a qualified professional for decisions about your situation.
+          </p>
+          <p>© {new Date().getFullYear()} HomePath. All rights reserved. Built for future homeowners.</p>
         </div>
       </footer>
     </div>

@@ -1,7 +1,8 @@
 import { Link } from "react-router-dom";
 import { useEffect, useMemo, useState } from "react";
+import { formatDistanceToNow } from "date-fns";
 import { Layout } from "@/components/Layout";
-import { useUserData } from "@/hooks/use-user-data";
+import { UserDataPageShell, useRequiredUserData } from "@/components/UserDataPageShell";
 import {
   TrendingUp,
   CheckCircle2,
@@ -39,19 +40,27 @@ import {
   pickDefaultGoalId,
   type ProgressChartRow,
 } from "@/lib/progress-on-track";
-import type { UserData } from "@/lib/types";
 
 const ON_TRACK_BAR_COLOR = "#10b981";
 
 type ChartRow = ProgressChartRow & { onTrackPlanned: number };
 
-export default function ProgressPage() {
-  const { data } = useUserData();
+function formatHistoryDateLabel(iso: string): string {
+  const m = iso.match(/^(\d{4})-(\d{2})$/);
+  if (m) {
+    const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+    return `${months[parseInt(m[2], 10) - 1]} ${m[1]}`;
+  }
+  const d = new Date(iso);
+  return !Number.isNaN(d.getTime())
+    ? d.toLocaleDateString(undefined, { month: "short", year: "numeric" })
+    : iso;
+}
 
-  const defaultGoalId = useMemo(
-    () => (data ? pickDefaultGoalId(data.goals) : null),
-    [data]
-  );
+function ProgressContent() {
+  const data = useRequiredUserData();
+
+  const defaultGoalId = useMemo(() => pickDefaultGoalId(data.goals), [data.goals]);
 
   const [selectedGoalId, setSelectedGoalId] = useState<string | null>(null);
 
@@ -96,6 +105,111 @@ export default function ProgressPage() {
     : false;
   const showOnTrack = onTrackSeries !== null && hasDeadline;
 
+  const monthlyStats = useMemo(() => {
+    if (!data) {
+      return { monthlyAverage: 0, targetRemaining: 0, monthCount: 0 };
+    }
+    const monthlyAverage =
+      data.savings.monthly.reduce((acc, curr) => acc + curr.amount, 0) /
+      Math.max(1, data.savings.monthly.length);
+    return {
+      monthlyAverage,
+      targetRemaining: data.savings.target - data.savings.total,
+      monthCount: data.savings.monthly.length,
+    };
+  }, [data]);
+
+  const journeyMilestones = useMemo(() => {
+    if (!data) return [];
+    type M = { title: string; date: string; status: "completed" | "upcoming" };
+    const out: M[] = [];
+    if (data.history.length >= 1) {
+      out.push({
+        title: "Started tracking readiness",
+        date: formatHistoryDateLabel(data.history[0].date),
+        status: "completed",
+      });
+    }
+    if (data.savings.target > 0) {
+      const pct = (data.savings.total / data.savings.target) * 100;
+      if (pct >= 50 && pct < 100) {
+        const lastMo =
+          data.savings.monthly.length > 0
+            ? data.savings.monthly[data.savings.monthly.length - 1]
+            : undefined;
+        out.push({
+          title: "Reached half your savings target",
+          date: lastMo ? `${lastMo.month} ${lastMo.year}` : "—",
+          status: "completed",
+        });
+      }
+    }
+    const goalDeadlines = [...data.goals]
+      .filter((g) => g.deadline?.trim())
+      .sort((a, b) => new Date(a.deadline).getTime() - new Date(b.deadline).getTime());
+    const now = new Date();
+    for (const g of goalDeadlines) {
+      const d = new Date(g.deadline);
+      if (Number.isNaN(d.getTime())) continue;
+      out.push({
+        title: g.title,
+        date: d.toLocaleDateString(undefined, { month: "short", year: "numeric" }),
+        status: d < now ? "completed" : "upcoming",
+      });
+    }
+    if (out.length === 0) {
+      out.push({
+        title: "Add goals with target dates to build your timeline",
+        date: "—",
+        status: "upcoming",
+      });
+    }
+    return out;
+  }, [data]);
+
+  const recentActivity = useMemo(() => {
+    if (!data) return [];
+    type Row = { at: string; label: string; amount: number };
+    const rows: Row[] = [];
+    for (const t of data.incomeTransactions) {
+      rows.push({
+        at: t.income_date,
+        label: (t.source && t.source.trim()) || "Income",
+        amount: t.amount,
+      });
+    }
+    for (const t of data.expenseTransactions) {
+      rows.push({
+        at: t.expense_date,
+        label: t.category?.trim() || "Expense",
+        amount: -t.amount,
+      });
+    }
+    return rows
+      .sort((a, b) => new Date(b.at).getTime() - new Date(a.at).getTime())
+      .slice(0, 5)
+      .map((r) => ({
+        label: r.label,
+        amount: r.amount,
+        dateLabel: formatDistanceToNow(new Date(r.at), { addSuffix: true }),
+      }));
+  }, [data]);
+
+  const proTipText = useMemo(() => {
+    const { monthlyAverage, targetRemaining } = monthlyStats;
+    if (targetRemaining <= 0 || monthlyAverage <= 0) {
+      return "Add income, expenses, and goals with deadlines so we can estimate how extra savings affect your timeline.";
+    }
+    const bump = Math.max(50, Math.round(monthlyAverage * 0.08));
+    const monthsAtPace = Math.ceil(targetRemaining / monthlyAverage);
+    const monthsWithBump = Math.ceil(targetRemaining / (monthlyAverage + bump));
+    const saved = Math.max(0, monthsAtPace - monthsWithBump);
+    if (saved <= 0) {
+      return "Keep logging monthly savings—when your pace stabilizes, we can estimate how small increases shorten your timeline.";
+    }
+    return `At your current pace, raising savings by about $${bump.toLocaleString()} per month could shorten your timeline by roughly ${saved} month${saved === 1 ? "" : "s"}.`;
+  }, [monthlyStats]);
+
   const chartData: ChartRow[] = useMemo(() => {
     return progressRows.map((row, i) => ({
       ...row,
@@ -103,23 +217,10 @@ export default function ProgressPage() {
     }));
   }, [progressRows, onTrackSeries, showOnTrack]);
 
-  if (!data) return null;
-
-  const monthlyAverage =
-    data.savings.monthly.reduce((acc, curr) => acc + curr.amount, 0) /
-    Math.max(1, data.savings.monthly.length);
-  const targetRemaining = data.savings.target - data.savings.total;
-
-  const milestones = [
-    { title: "Started Journey", date: "Jan 2023", status: "completed" },
-    { title: "First $10k Saved", date: "Mar 2023", status: "completed" },
-    { title: "Halfway Point", date: "Oct 2023", status: "completed" },
-    { title: "Down Payment Ready", date: "Jun 2024", status: "upcoming" },
-    { title: "Closing Day", date: "Dec 2025", status: "upcoming" },
-  ];
+  const { monthlyAverage, targetRemaining, monthCount } = monthlyStats;
 
   return (
-    <Layout>
+    <>
       <div className="container py-8 space-y-8">
         <header>
           <h1 className="text-3xl font-bold tracking-tight">Savings Progress</h1>
@@ -150,7 +251,16 @@ export default function ProgressPage() {
               <div className="text-2xl font-bold">
                 ${monthlyAverage.toLocaleString(undefined, { maximumFractionDigits: 0 })}
               </div>
-              <p className="text-xs text-muted-foreground">Based on the last 6 months</p>
+              <p className="text-xs text-muted-foreground">
+                {monthCount > 0
+                  ? `Across ${monthCount} month${monthCount === 1 ? "" : "s"} with savings data`
+                  : "No monthly savings rows yet — log progress in Settings or your workflow when you add data."}
+              </p>
+              {monthCount === 0 && (
+                <Button type="button" variant="link" className="mt-1 h-auto p-0 text-xs" asChild>
+                  <Link to="/settings">Open Settings to add income &amp; expenses</Link>
+                </Button>
+              )}
             </CardContent>
           </Card>
           <Card>
@@ -295,7 +405,7 @@ export default function ProgressPage() {
             </CardHeader>
             <CardContent>
               <div className="relative space-y-8 before:absolute before:inset-0 before:ml-5 before:-translate-x-px before:h-full before:w-0.5 before:bg-gradient-to-b before:from-transparent before:via-slate-300 before:to-transparent">
-                {milestones.map((milestone, i) => (
+                {journeyMilestones.map((milestone, i) => (
                   <div
                     key={i}
                     className="relative flex items-center justify-between md:justify-normal md:odd:flex-row-reverse group"
@@ -309,9 +419,15 @@ export default function ProgressPage() {
                     </div>
                     <div className="w-[calc(100%-4rem)] rounded-xl border bg-card p-4 shadow-sm transition-all hover:shadow-md md:w-[calc(50%-2.5rem)]">
                       <div className="mb-1 flex items-center justify-between">
-                        <time className="text-xs font-bold uppercase tracking-wider text-primary">
-                          {milestone.date}
-                        </time>
+                        {milestone.date && milestone.date !== "—" ? (
+                          <time className="text-xs font-bold uppercase tracking-wider text-primary">
+                            {milestone.date}
+                          </time>
+                        ) : (
+                          <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                            —
+                          </span>
+                        )}
                         {milestone.status === "completed" && (
                           <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-bold uppercase text-emerald-700">
                             Completed
@@ -348,10 +464,7 @@ export default function ProgressPage() {
                   </div>
                   <span className="text-sm font-bold">Pro Tip</span>
                 </div>
-                <p className="text-xs leading-relaxed text-muted-foreground">
-                  Increasing your monthly savings by just **$200** could shave **6 months** off your
-                  timeline.
-                </p>
+                <p className="text-xs leading-relaxed text-muted-foreground">{proTipText}</p>
                 <Button variant="link" className="h-auto p-0 text-xs font-bold" asChild>
                   <Link to="/goals">
                     View your roadmap <ChevronRight className="h-3 w-3" />
@@ -361,29 +474,57 @@ export default function ProgressPage() {
 
               <div className="space-y-4">
                 <h4 className="text-sm font-bold">Recent Activity</h4>
-                <div className="space-y-3">
-                  {[
-                    { type: "Deposit", amount: 2400, date: "2 days ago" },
-                    { type: "Interest", amount: 45, date: "1 week ago" },
-                    { type: "Deposit", amount: 2100, date: "1 month ago" },
-                  ].map((activity, i) => (
-                    <div key={i} className="flex items-center justify-between text-xs">
-                      <div className="flex items-center gap-2">
-                        <div className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
-                        <span className="font-medium">{activity.type}</span>
-                      </div>
-                      <div className="flex items-center gap-3">
-                        <span className="font-bold text-foreground">+${activity.amount}</span>
-                        <span className="text-muted-foreground">{activity.date}</span>
-                      </div>
+                {recentActivity.length === 0 ? (
+                  <div className="space-y-3">
+                    <p className="text-xs text-muted-foreground leading-relaxed">
+                      No recent income or expenses yet. Add entries on Spending or Settings to see them here.
+                    </p>
+                    <div className="flex flex-wrap gap-2">
+                      <Button type="button" size="sm" variant="secondary" asChild>
+                        <Link to="/spending">Spending</Link>
+                      </Button>
+                      <Button type="button" size="sm" variant="outline" asChild>
+                        <Link to="/settings">Settings</Link>
+                      </Button>
                     </div>
-                  ))}
-                </div>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {recentActivity.map((activity, i) => (
+                      <div key={i} className="flex items-center justify-between text-xs">
+                        <div className="flex min-w-0 items-center gap-2">
+                          <div
+                            className={`h-1.5 w-1.5 shrink-0 rounded-full ${activity.amount >= 0 ? "bg-emerald-500" : "bg-rose-500"}`}
+                          />
+                          <span className="truncate font-medium">{activity.label}</span>
+                        </div>
+                        <div className="flex shrink-0 items-center gap-3 pl-2">
+                          <span
+                            className={`font-bold tabular-nums ${activity.amount >= 0 ? "text-foreground" : "text-destructive"}`}
+                          >
+                            {activity.amount >= 0 ? "+" : ""}${Math.abs(activity.amount).toLocaleString()}
+                          </span>
+                          <span className="text-muted-foreground">{activity.dateLabel}</span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             </CardContent>
           </Card>
         </div>
       </div>
+    </>
+  );
+}
+
+export default function ProgressPage() {
+  return (
+    <Layout>
+      <UserDataPageShell>
+        <ProgressContent />
+      </UserDataPageShell>
     </Layout>
   );
 }

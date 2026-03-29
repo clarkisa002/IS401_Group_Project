@@ -7,7 +7,7 @@ export function cn(...inputs: ClassValue[]) {
 
 /** Matches `Button` keyboard focus — use with `rounded-*` on the same element. */
 export const focusRingClasses =
-  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2";
+  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background";
 
 /** Recharts stroke/fill values aligned with CSS theme tokens */
 export const chartTheme = {

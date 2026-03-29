@@ -51,7 +51,7 @@ export default function SignUp() {
     <Layout>
       <section className="flex min-h-[70vh] items-center justify-center py-12">
         <div className="container max-w-md">
-          <Card className="border border-border/60 shadow-xl shadow-primary/5">
+          <Card className="border-border/60 shadow-hero">
             <CardHeader className="space-y-3">
               <div className="inline-flex items-center gap-2 rounded-full bg-primary/10 px-3 py-1 text-xs font-medium text-primary">
                 <UserPlus className="h-3.5 w-3.5" />

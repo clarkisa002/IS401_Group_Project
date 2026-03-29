@@ -115,6 +115,19 @@ export async function fetchUserData(userId: string, userName: string): Promise<U
       .order("month", { ascending: true }),
   ]);
 
+  const loadErrors = [
+    readinessRes.error,
+    historyRes.error,
+    goalsRes.error,
+    expensesRes.error,
+    incomeRes.error,
+    progressRes.error,
+  ].filter(Boolean);
+  if (loadErrors.length > 0) {
+    const msg = loadErrors[0]?.message || "Failed to load your data from the server.";
+    throw new Error(msg);
+  }
+
   const readiness = readinessRes.data as DbReadiness | null;
   const historyRows = (historyRes.data ?? []) as DbReadinessHistory[];
   const goals = (goalsRes.data ?? []) as DbGoal[];
@@ -202,7 +215,7 @@ export async function fetchUserData(userId: string, userName: string): Promise<U
     incomeStability,
     debt,
     debtToIncomeRatio: computedDebtToIncome || debtToIncomeRatio,
-    expenses: expenseRows.length > 0 ? expenseRows : DEMO_DATA.expenses,
+    expenses: expenseRows,
     expenseTransactions,
     incomeTransactions,
     history,

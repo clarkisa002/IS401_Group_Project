@@ -28,7 +28,8 @@
     --secondary-foreground: 210 40% 98%;
 
     --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
+    /* Slightly darker than default shadcn for WCAG-friendly contrast on muted backgrounds */
+    --muted-foreground: 215.4 16.3% 40%;
 
     --accent: 142 71% 45%;
     --accent-foreground: 210 40% 98%;
@@ -52,6 +53,10 @@
     --sidebar-ring: 217.2 91.2% 59.8%;
 
     --chart-series-2: 38 92% 50%;
+
+    /* Elevation + surfaces (batch: consistent visual system) */
+    --shadow-card: 0 1px 2px 0 rgb(15 23 42 / 0.04), 0 1px 3px 0 rgb(15 23 42 / 0.07);
+    --shadow-hero: 0 4px 6px -1px rgb(15 23 42 / 0.06), 0 14px 32px -10px rgb(15 23 42 / 0.14);
   }
 
   .dark {
@@ -71,7 +76,7 @@
     --secondary-foreground: 210 40% 98%;
 
     --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
+    --muted-foreground: 215 18% 72%;
 
     --accent: 142 71% 45%;
     --accent-foreground: 210 40% 98%;
@@ -92,6 +97,9 @@
     --sidebar-ring: 217.2 91.2% 59.8%;
 
     --chart-series-2: 43 96% 56%;
+
+    --shadow-card: 0 1px 2px 0 rgb(0 0 0 / 0.32), 0 1px 3px 0 rgb(0 0 0 / 0.42);
+    --shadow-hero: 0 6px 20px -4px rgb(0 0 0 / 0.5), 0 2px 8px -2px rgb(0 0 0 / 0.35);
   }
 
   /* --- Slate: cool neutrals + blue-gray accent --- */
@@ -107,7 +115,7 @@
     --secondary: 215 20% 42%;
     --secondary-foreground: 210 40% 98%;
     --muted: 210 40% 96.1%;
-    --muted-foreground: 215 16% 46.9%;
+    --muted-foreground: 215 16% 40%;
     --accent: 215 20% 42%;
     --accent-foreground: 210 40% 98%;
     --destructive: 0 84.2% 60.2%;
@@ -138,7 +146,7 @@
     --secondary: 215 20% 55%;
     --secondary-foreground: 222 47% 11%;
     --muted: 217 33% 17%;
-    --muted-foreground: 215 20% 65%;
+    --muted-foreground: 215 18% 72%;
     --accent: 215 20% 55%;
     --accent-foreground: 222 47% 11%;
     --destructive: 0 62.8% 50%;
@@ -170,7 +178,7 @@
     --secondary: 142 61% 38%;
     --secondary-foreground: 210 40% 98%;
     --muted: 160 22% 95%;
-    --muted-foreground: 160 18% 38%;
+    --muted-foreground: 160 18% 35%;
     --accent: 142 61% 38%;
     --accent-foreground: 210 40% 98%;
     --destructive: 0 84.2% 60.2%;
@@ -201,7 +209,7 @@
     --secondary: 142 55% 42%;
     --secondary-foreground: 210 40% 98%;
     --muted: 160 28% 16%;
-    --muted-foreground: 160 15% 70%;
+    --muted-foreground: 160 15% 73%;
     --accent: 142 55% 42%;
     --accent-foreground: 210 40% 98%;
     --destructive: 0 62.8% 50%;
@@ -233,7 +241,7 @@
     --secondary: 292 47% 44%;
     --secondary-foreground: 210 40% 98%;
     --muted: 270 25% 95%;
-    --muted-foreground: 270 15% 42%;
+    --muted-foreground: 270 15% 38%;
     --accent: 292 47% 44%;
     --accent-foreground: 210 40% 98%;
     --destructive: 0 84.2% 60.2%;
@@ -264,7 +272,7 @@
     --secondary: 292 45% 52%;
     --secondary-foreground: 210 40% 98%;
     --muted: 270 28% 16%;
-    --muted-foreground: 270 15% 70%;
+    --muted-foreground: 270 15% 73%;
     --accent: 292 45% 52%;
     --accent-foreground: 210 40% 98%;
     --destructive: 0 62.8% 50%;
@@ -296,7 +304,7 @@
     --secondary: 16 78% 46%;
     --secondary-foreground: 0 0% 100%;
     --muted: 35 32% 94%;
-    --muted-foreground: 24 12% 40%;
+    --muted-foreground: 24 12% 36%;
     --accent: 16 78% 46%;
     --accent-foreground: 0 0% 100%;
     --destructive: 0 84.2% 58%;
@@ -354,6 +362,16 @@
 
   body {
     @apply bg-background text-foreground;
+    font-variant-numeric: tabular-nums;
+  }
+
+  /** Skip link target: visible focus when moving to main content */
+  #main-content:focus {
+    outline: none;
+  }
+  #main-content:focus-visible {
+    outline: 2px solid hsl(var(--ring));
+    outline-offset: 2px;
   }
 
   :where(p, span, li, h1, h2, h3, h4, h5, h6, a, button, label, td, th) {
@@ -365,5 +383,21 @@
   code {
     overflow-x: auto;
     white-space: pre;
+  }
+}
+
+@layer components {
+  /**
+   * Primary focal card per page: one gradient + hero shadow (use instead of ad hoc primary/10 + shadow-xl).
+   */
+  .surface-hero {
+    @apply overflow-hidden border border-border/80 bg-gradient-to-br from-primary/[0.07] via-primary/[0.03] to-transparent shadow-hero;
+  }
+
+  /**
+   * Secondary callouts / quotes / budget panels: soft tint, standard border weight.
+   */
+  .surface-accent-soft {
+    @apply border border-border/70 bg-gradient-to-b from-primary/[0.05] via-background to-muted/30;
   }
 }

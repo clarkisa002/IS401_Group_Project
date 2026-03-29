@@ -23,7 +23,7 @@ const navItems = [
 
 export function Navbar() {
   const location = useLocation();
-  const { data } = useUserData();
+  const { data, loading: userDataLoading } = useUserData();
   const { user, isAuthenticated, logout } = useAuth();
 
   const displayName = user?.name || data?.name || "Guest";
@@ -79,7 +79,14 @@ export function Navbar() {
             <div className="hidden flex-col items-end text-right md:flex">
               <span className="text-sm font-semibold leading-none">{displayName}</span>
               <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider mt-1">
-                Score: {data?.readinessScore || 0}
+                Score:{" "}
+                {userDataLoading ? (
+                  <span className="tabular-nums" aria-label="Loading score">
+                    …
+                  </span>
+                ) : (
+                  <span className="tabular-nums">{data?.readinessScore ?? 0}</span>
+                )}
               </span>
             </div>
           </div>

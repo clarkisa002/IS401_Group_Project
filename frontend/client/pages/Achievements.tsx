@@ -1,5 +1,7 @@
+import { Link } from "react-router-dom";
 import { Layout } from "@/components/Layout";
-import { useUserData } from "@/hooks/use-user-data";
+import { UserDataPageShell, useRequiredUserData } from "@/components/UserDataPageShell";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Trophy,
@@ -28,15 +30,15 @@ const ICON_MAP: Record<AchievementIcon, React.ElementType> = {
   Flame,
 };
 
-export default function Achievements() {
-  const { data } = useUserData();
+function AchievementsContent() {
+  const data = useRequiredUserData();
 
-  const achievements = data?.achievements ?? [];
+  const achievements = data.achievements;
   const unlocked = achievements.filter((a) => a.unlocked);
   const locked = achievements.filter((a) => !a.unlocked);
 
   return (
-    <Layout>
+    <>
       <div className="container py-8 space-y-6">
         <header className="space-y-2">
           <h1 className="text-3xl font-bold tracking-tight flex items-center gap-3">
@@ -123,15 +125,29 @@ export default function Achievements() {
         )}
 
         {achievements.length === 0 && (
-          <Card>
-            <CardContent className="py-12 text-center">
-              <p className="text-sm text-muted-foreground">
-                No badges available yet — start tracking your finances to see what you can earn.
+          <Card className="border-dashed">
+            <CardContent className="flex flex-col items-center gap-4 py-12 text-center">
+              <p className="max-w-md text-sm text-muted-foreground leading-relaxed">
+                No badges are defined for your profile yet. As you use the app (savings, goals, spending), badges will
+                appear here when you meet each milestone.
               </p>
+              <Button type="button" variant="secondary" asChild>
+                <Link to="/dashboard">Back to Dashboard</Link>
+              </Button>
             </CardContent>
           </Card>
         )}
       </div>
+    </>
+  );
+}
+
+export default function Achievements() {
+  return (
+    <Layout>
+      <UserDataPageShell>
+        <AchievementsContent />
+      </UserDataPageShell>
     </Layout>
   );
 }

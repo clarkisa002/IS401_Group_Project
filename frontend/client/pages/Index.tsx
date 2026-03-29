@@ -1,23 +1,40 @@
 import { Layout } from "@/components/Layout";
+import { UserDataPageShell, useRequiredUserData } from "@/components/UserDataPageShell";
 import { Button } from "@/components/ui/button";
-import { useUserData } from "@/hooks/use-user-data";
-import { ArrowRight, Users, Lightbulb, Home, TrendingUp, ChevronRight } from "lucide-react";
+import { useMemo } from "react";
+import { ArrowRight, Users, Lightbulb, Home, TrendingUp, TrendingDown, ChevronRight } from "lucide-react";
 import { Link } from "react-router-dom";
 import { ResponsiveContainer, XAxis, YAxis, Tooltip, CartesianGrid, AreaChart, Area } from "recharts";
 import { motion, useReducedMotion } from "framer-motion";
 import { cn, focusRingClasses, chartTheme } from "@/lib/utils";
 
-export default function Index() {
-  const { data } = useUserData();
+function IndexContent() {
+  const data = useRequiredUserData();
   const reduceMotion = useReducedMotion();
 
-  const chartData = data?.history.map(h => ({
+  const chartData = data.history.map((h) => ({
     name: h.date,
     score: h.score,
-  })) || [];
+  }));
+
+  const trajectoryChange = useMemo(() => {
+    const h = data.history;
+    if (h.length < 2) return null;
+    const first = h[0].score;
+    const last = h[h.length - 1].score;
+    const delta = last - first;
+    if (first === 0) {
+      if (delta === 0) return null;
+      return { text: `${delta > 0 ? "+" : ""}${delta} pts`, up: delta >= 0 };
+    }
+    const pct = Math.round((delta / first) * 100);
+    return { text: `${pct >= 0 ? "+" : ""}${pct}%`, up: pct >= 0 };
+  }, [data.history]);
+
+  const hasReadableScoreHistory = data.history.length >= 2;
 
   return (
-    <Layout>
+    <>
       {/* Hero Section */}
       <section className="relative overflow-hidden py-16 md:py-24">
         <div className="container relative z-10">
@@ -41,7 +58,7 @@ export default function Index() {
               
               <div className="space-y-4">
                 <h1 className="text-4xl font-extrabold tracking-tight sm:text-5xl md:text-6xl">
-                  Welcome, <span className="text-primary">{data?.name || "Future Homeowner"}!</span>
+                  Welcome, <span className="text-primary">{data.name || "Future Homeowner"}!</span>
                 </h1>
                 <p className="text-xl text-muted-foreground leading-relaxed max-w-xl">
                   Turning the dream of owning a home into a clear, actionable roadmap. Track your readiness, optimize your savings, and secure your future.
@@ -49,7 +66,7 @@ export default function Index() {
               </div>
 
               <div className="flex flex-wrap gap-4">
-                <Button asChild size="lg" className="h-14 px-8 text-lg shadow-xl shadow-primary/20">
+                <Button asChild size="lg" className="h-14 px-8 text-lg shadow-hero">
                   <Link to="/dashboard" className="gap-2">
                     Explore Roadmap to Own <ArrowRight className="h-5 w-5" />
                   </Link>
@@ -106,52 +123,85 @@ export default function Index() {
               className="relative"
             >
               <div className="absolute -inset-4 rounded-[2.5rem] bg-gradient-to-tr from-primary/20 via-primary/5 to-transparent blur-2xl" />
-              <div className="relative rounded-3xl border bg-card/50 p-6 shadow-2xl backdrop-blur-sm sm:p-8" role="img" aria-label="Readiness trajectory chart showing your progress towards a home readiness score of 100 over time">
+              <div
+                className="surface-hero relative rounded-3xl p-6 backdrop-blur-sm sm:p-8"
+                role="img"
+                aria-label="Readiness trajectory chart showing your progress towards a home readiness score of 100 over time"
+              >
                 <div className="mb-6 flex items-center justify-between">
                   <div className="space-y-1">
                     <h3 className="font-bold">Readiness Trajectory</h3>
                     <p className="text-sm text-muted-foreground">Progress towards 100 score</p>
                   </div>
-                  <div className="flex items-center gap-1 rounded-full bg-secondary/20 px-3 py-1 text-sm font-bold text-secondary">
-                    <TrendingUp className="h-4 w-4" />
-                    +12%
-                  </div>
+                  {trajectoryChange ? (
+                    <div
+                      className={cn(
+                        "flex items-center gap-1 rounded-full px-3 py-1 text-sm font-bold",
+                        trajectoryChange.up
+                          ? "bg-secondary/20 text-secondary"
+                          : "bg-amber-500/15 text-amber-800 dark:text-amber-200"
+                      )}
+                    >
+                      {trajectoryChange.up ? (
+                        <TrendingUp className="h-4 w-4" aria-hidden />
+                      ) : (
+                        <TrendingDown className="h-4 w-4" aria-hidden />
+                      )}
+                      {trajectoryChange.text}
+                    </div>
+                  ) : (
+                    <div className="rounded-full bg-muted px-3 py-1 text-xs font-medium text-muted-foreground">
+                      Log more months to see trend
+                    </div>
+                  )}
                 </div>
                 
                 <div className="h-[300px] w-full">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <AreaChart data={chartData}>
-                      <defs>
-                        <linearGradient id="colorScore" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.3}/>
-                          <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0}/>
-                        </linearGradient>
-                      </defs>
-                      <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={chartTheme.gridStroke} />
-                      <XAxis
-                        dataKey="name"
-                        axisLine={false}
-                        tickLine={false}
-                        tick={{ fill: chartTheme.tickFill, fontSize: 12 }}
-                        dy={10}
-                      />
-                      <YAxis 
-                        hide 
-                        domain={[0, 100]}
-                      />
-                      <Tooltip 
-                        contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' }}
-                      />
-                      <Area 
-                        type="monotone" 
-                        dataKey="score" 
-                        stroke="hsl(var(--primary))" 
-                        strokeWidth={4}
-                        fillOpacity={1} 
-                        fill="url(#colorScore)" 
-                      />
-                    </AreaChart>
-                  </ResponsiveContainer>
+                  {hasReadableScoreHistory ? (
+                    <ResponsiveContainer width="100%" height="100%">
+                      <AreaChart data={chartData}>
+                        <defs>
+                          <linearGradient id="colorScore" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.3}/>
+                            <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0}/>
+                          </linearGradient>
+                        </defs>
+                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={chartTheme.gridStroke} />
+                        <XAxis
+                          dataKey="name"
+                          axisLine={false}
+                          tickLine={false}
+                          tick={{ fill: chartTheme.tickFill, fontSize: 12 }}
+                          dy={10}
+                        />
+                        <YAxis 
+                          hide 
+                          domain={[0, 100]}
+                        />
+                        <Tooltip 
+                          contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' }}
+                        />
+                        <Area 
+                          type="monotone" 
+                          dataKey="score" 
+                          stroke="hsl(var(--primary))" 
+                          strokeWidth={4}
+                          fillOpacity={1} 
+                          fill="url(#colorScore)" 
+                        />
+                      </AreaChart>
+                    </ResponsiveContainer>
+                  ) : (
+                    <div className="flex h-full flex-col items-center justify-center gap-4 rounded-xl border border-dashed bg-muted/30 px-6 text-center">
+                      <p className="max-w-md text-sm text-muted-foreground leading-relaxed">
+                        Once you have readiness scores from more than one update, you&apos;ll see your trajectory
+                        here. Use the Dashboard to refresh your financial snapshot when things change.
+                      </p>
+                      <Button size="sm" asChild>
+                        <Link to="/dashboard">Open Dashboard</Link>
+                      </Button>
+                    </div>
+                  )}
                 </div>
               </div>
             </motion.div>
@@ -166,7 +216,7 @@ export default function Index() {
             {[
               { 
                 title: "Personal Readiness", 
-                value: `${data?.readinessScore}/100`, 
+                value: `${data.readinessScore}/100`, 
                 desc: "Your overall home-buying health",
                 icon: TrendingUp,
                 color: "text-blue-500",
@@ -174,15 +224,15 @@ export default function Index() {
               },
               { 
                 title: "Savings Target", 
-                value: `$${(data?.savings.total || 0).toLocaleString()}`, 
-                desc: `Of $${(data?.savings.target || 0).toLocaleString()} target reached`,
+                value: `$${data.savings.total.toLocaleString()}`, 
+                desc: `Of $${data.savings.target.toLocaleString()} target reached`,
                 icon: Home,
                 color: "text-emerald-500",
                 bg: "bg-emerald-50"
               },
               { 
                 title: "Active Streak", 
-                value: `${data?.streak} Months`, 
+                value: `${data.streak} Months`, 
                 desc: "Consistent saving behavior",
                 icon: Users,
                 color: "text-orange-500",
@@ -193,7 +243,7 @@ export default function Index() {
                 key={i}
                 to="/dashboard"
                 className={cn(
-                  "group relative rounded-2xl border bg-card p-6 transition-all hover:shadow-xl hover:-translate-y-1 motion-reduce:hover:translate-y-0 motion-reduce:transition-shadow",
+                  "group relative rounded-2xl border bg-card p-6 shadow-card transition-all hover:shadow-hero hover:-translate-y-1 motion-reduce:hover:translate-y-0 motion-reduce:transition-shadow",
                   focusRingClasses
                 )}
               >
@@ -213,6 +263,16 @@ export default function Index() {
           </div>
         </div>
       </section>
+    </>
+  );
+}
+
+export default function Index() {
+  return (
+    <Layout>
+      <UserDataPageShell>
+        <IndexContent />
+      </UserDataPageShell>
     </Layout>
   );
 }
