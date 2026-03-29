@@ -314,7 +314,7 @@ export interface ReadinessScoreInputs {
   homePriceMin: number;
 }
 
-const WEIGHTS = {
+export const READINESS_FACTOR_WEIGHTS = {
   savingsProgress: 0.25,
   creditScore: 0.2,
   debtToIncome: 0.2,
@@ -323,11 +323,20 @@ const WEIGHTS = {
   downPaymentPct: 0.1,
 } as const;
 
+export type ReadinessFactorId = keyof typeof READINESS_FACTOR_WEIGHTS;
+
+/** Per-factor 0–100 scores using the same rules as `calculateReadinessScore`. */
+export interface ReadinessFactorBreakdown {
+  id: ReadinessFactorId;
+  weight: number;
+  score: number;
+}
+
 /**
- * Calculates readiness score (0-100) from financial inputs.
- * Uses 6 weighted factors; handles missing/zero inputs with neutral score (50).
+ * Returns each readiness factor’s normalized score (0–100) and weight.
+ * Must stay in sync with `calculateReadinessScore`.
  */
-export function calculateReadinessScore(inputs: ReadinessScoreInputs): number {
+export function computeReadinessFactorScores(inputs: ReadinessScoreInputs): ReadinessFactorBreakdown[] {
   const {
     totalSaved,
     savingsTarget,
@@ -340,56 +349,48 @@ export function calculateReadinessScore(inputs: ReadinessScoreInputs): number {
     homePriceMin,
   } = inputs;
 
-  let score = 0;
-  let weightSum = 0;
+  const savingsScore =
+    savingsTarget > 0 ? Math.min(100, (totalSaved / savingsTarget) * 100) : 50;
 
-  // 1. Savings progress (25%)
-  if (savingsTarget > 0) {
-    const raw = Math.min(100, (totalSaved / savingsTarget) * 100);
-    score += raw * WEIGHTS.savingsProgress;
-    weightSum += WEIGHTS.savingsProgress;
-  } else {
-    score += 50 * WEIGHTS.savingsProgress;
-    weightSum += WEIGHTS.savingsProgress;
-  }
-
-  // 2. Credit score (20%) - 300-850 -> 0-100
   const creditRaw = Math.max(0, Math.min(100, ((creditScore - 300) / 550) * 100));
-  score += creditRaw * WEIGHTS.creditScore;
-  weightSum += WEIGHTS.creditScore;
 
-  // 3. Debt-to-income (20%) - lower DTI = higher score
   const monthlyIncome = income > 0 ? income / 12 : 0;
   const dtiPct = monthlyIncome > 0 && debt > 0 ? (debt / monthlyIncome) * 100 : 0;
   const dtiRaw = Math.max(0, 100 - Math.min(100, dtiPct * 1.5));
-  score += dtiRaw * WEIGHTS.debtToIncome;
-  weightSum += WEIGHTS.debtToIncome;
 
-  // 4. Income stability (15%)
   const stabilityRaw = Math.max(0, Math.min(100, incomeStability));
-  score += stabilityRaw * WEIGHTS.incomeStability;
-  weightSum += WEIGHTS.incomeStability;
 
-  // 5. Emergency fund adequacy (10%) - 3 months expenses = 100
-  if (monthlyExpenses > 0) {
-    const target3mo = 3 * monthlyExpenses;
-    const raw = Math.min(100, (emergencyFund / target3mo) * 100);
-    score += raw * WEIGHTS.emergencyFund;
-  } else {
-    score += 50 * WEIGHTS.emergencyFund;
-  }
-  weightSum += WEIGHTS.emergencyFund;
+  const emergencyScore =
+    monthlyExpenses > 0
+      ? Math.min(100, (emergencyFund / (3 * monthlyExpenses)) * 100)
+      : 50;
 
-  // 6. Down payment % of target (10%) - 20% of home price = 100
   const target20 = homePriceMin > 0 ? homePriceMin * 0.2 : 0;
-  if (target20 > 0) {
-    const raw = Math.min(100, (totalSaved / target20) * 100);
-    score += raw * WEIGHTS.downPaymentPct;
-  } else {
-    score += 50 * WEIGHTS.downPaymentPct;
-  }
-  weightSum += WEIGHTS.downPaymentPct;
+  const downPaymentScore =
+    target20 > 0 ? Math.min(100, (totalSaved / target20) * 100) : 50;
 
+  return [
+    { id: "savingsProgress", weight: READINESS_FACTOR_WEIGHTS.savingsProgress, score: savingsScore },
+    { id: "creditScore", weight: READINESS_FACTOR_WEIGHTS.creditScore, score: creditRaw },
+    { id: "debtToIncome", weight: READINESS_FACTOR_WEIGHTS.debtToIncome, score: dtiRaw },
+    { id: "incomeStability", weight: READINESS_FACTOR_WEIGHTS.incomeStability, score: stabilityRaw },
+    { id: "emergencyFund", weight: READINESS_FACTOR_WEIGHTS.emergencyFund, score: emergencyScore },
+    { id: "downPaymentPct", weight: READINESS_FACTOR_WEIGHTS.downPaymentPct, score: downPaymentScore },
+  ];
+}
+
+/**
+ * Calculates readiness score (0-100) from financial inputs.
+ * Uses 6 weighted factors; handles missing/zero inputs with neutral score (50).
+ */
+export function calculateReadinessScore(inputs: ReadinessScoreInputs): number {
+  const factors = computeReadinessFactorScores(inputs);
+  let score = 0;
+  let weightSum = 0;
+  for (const f of factors) {
+    score += f.score * f.weight;
+    weightSum += f.weight;
+  }
   const total = weightSum > 0 ? score / weightSum : 50;
   return Math.round(Math.max(0, Math.min(100, total)));
 }

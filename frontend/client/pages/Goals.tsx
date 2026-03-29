@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { Link } from "react-router-dom";
 import { Layout } from "@/components/Layout";
 import { useUserData } from "@/hooks/use-user-data";
@@ -10,14 +10,18 @@ import {
   Shield, 
   FileText, 
   Plus, 
-  Zap, 
   TrendingUp, 
   Calendar,
   PiggyBank,
-  AlertCircle,
   Loader2,
   Trash2,
-  ArrowUpRight
+  ArrowUpRight,
+  Wallet,
+  Scale,
+  Briefcase,
+  CheckCircle2,
+  Sparkles,
+  type LucideIcon,
 } from "lucide-react";
 import { 
   ResponsiveContainer, 
@@ -29,6 +33,7 @@ import {
 } from "recharts";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Input } from "@/components/ui/input";
@@ -52,7 +57,18 @@ import {
 } from "@/components/ui/alert-dialog";
 import { supabase } from "@/lib/supabase";
 import { updateGoalProgress, recalculateAndSaveReadinessScore } from "@/lib/supabase-data";
+import { getTopReadinessRecommendations, READINESS_FACTOR_LABELS } from "@/lib/readiness-recommendations";
+import type { ReadinessFactorId } from "@/lib/supabase-data";
 import { toast } from "sonner";
+
+const RECOMMENDATION_ICONS: Record<ReadinessFactorId, LucideIcon> = {
+  savingsProgress: TrendingUp,
+  creditScore: Wallet,
+  debtToIncome: Scale,
+  incomeStability: Briefcase,
+  emergencyFund: Shield,
+  downPaymentPct: Home,
+};
 
 interface DbGoal {
   goal_id: string;
@@ -187,6 +203,11 @@ export default function GoalsPage() {
       setContributing(false);
     }
   };
+
+  const recommendations = useMemo(
+    () => (data ? getTopReadinessRecommendations(data, 2) : []),
+    [data]
+  );
 
   if (!data) return null;
 
@@ -435,34 +456,108 @@ export default function GoalsPage() {
               </button>
             </div>
 
-            {/* Recommendations */}
-            <Card className="bg-primary/5 border-primary/20">
-              <CardHeader>
-                <div className="flex items-center gap-2">
-                  <Zap className="h-5 w-5 text-primary" />
-                  <CardTitle>Actionable Recommendations</CardTitle>
-                </div>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid gap-4 sm:grid-cols-2">
-                  <div className="flex gap-3 p-4 rounded-xl bg-background border shadow-sm">
-                    <TrendingUp className="h-5 w-5 text-emerald-500 shrink-0 mt-1" />
-                    <div className="space-y-1">
-                      <p className="text-sm font-bold">Aggressive Savings Mode</p>
-                      <p className="text-xs text-muted-foreground">By increasing your monthly savings by 15%, you'll hit your Down Payment goal 4 months earlier.</p>
+            {/* Recommendations — layout distinct from old two-tile cards */}
+            <section className="rounded-2xl border-2 border-dashed border-primary/25 bg-gradient-to-b from-primary/[0.07] via-background to-muted/20 p-1 shadow-inner">
+              <div className="rounded-[0.9rem] border border-border/60 bg-card/80 backdrop-blur-sm">
+                <div className="flex flex-col gap-1 border-b border-border/60 px-5 py-4 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
+                  <div className="flex items-start gap-3">
+                    <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-primary text-primary-foreground shadow-md shadow-primary/25">
+                      <Sparkles className="h-5 w-5" aria-hidden />
+                    </div>
+                    <div>
+                      <h2 className="text-lg font-bold tracking-tight">Personalized next steps</h2>
+                      <p className="text-sm text-muted-foreground">
+                        Pulled from your weakest readiness factors (max 2). Overall score:{" "}
+                        <span className="font-semibold text-foreground">{data.readinessScore}/100</span>
+                      </p>
                     </div>
                   </div>
-                  <div className="flex gap-3 p-4 rounded-xl bg-background border shadow-sm">
-                    <AlertCircle className="h-5 w-5 text-amber-500 shrink-0 mt-1" />
-                    <div className="space-y-1">
-                      <p className="text-sm font-bold">Emergency Fund Re-balancing</p>
-                      <p className="text-xs text-muted-foreground">Consider topping up your emergency fund. Lenders prefer seeing 6 months of reserves.</p>
-                    </div>
-                  </div>
+                  <Badge variant="secondary" className="w-fit shrink-0 font-mono text-xs">
+                    Live from your data
+                  </Badge>
                 </div>
-                <Button variant="outline" className="w-full">Save As Fast As You Want</Button>
-              </CardContent>
-            </Card>
+
+                <div className="space-y-4 p-5">
+                  {recommendations.length === 0 ? (
+                    <div className="flex gap-4 rounded-xl border border-emerald-500/20 bg-emerald-500/[0.06] p-4">
+                      <CheckCircle2 className="h-10 w-10 shrink-0 text-emerald-600" aria-hidden />
+                      <div className="space-y-1">
+                        <p className="font-semibold text-emerald-900 dark:text-emerald-100">
+                          Nothing urgent to flag
+                        </p>
+                        <p className="text-sm text-muted-foreground leading-relaxed">
+                          Your tracked factors are in decent shape right now. Update your financial snapshot on the
+                          dashboard if anything changed—we&apos;ll refresh these tips automatically.
+                        </p>
+                      </div>
+                    </div>
+                  ) : (
+                    <ol className="space-y-4">
+                      {recommendations.map((rec, index) => {
+                        const Icon = RECOMMENDATION_ICONS[rec.factorId];
+                        return (
+                          <li
+                            key={rec.factorId}
+                            className="relative overflow-hidden rounded-xl border bg-background shadow-sm ring-1 ring-border/80"
+                          >
+                            <div className="absolute left-0 top-0 h-full w-1 bg-primary" aria-hidden />
+                            <div className="pl-5 pr-4 py-4 sm:pl-6">
+                              <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+                                <div className="flex min-w-0 flex-1 gap-3">
+                                  <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary/15 text-sm font-black text-primary">
+                                    {index + 1}
+                                  </span>
+                                  <div className="min-w-0 space-y-2">
+                                    <div className="flex flex-wrap items-center gap-2">
+                                      <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-muted">
+                                        <Icon className="h-5 w-5 text-primary" aria-hidden />
+                                      </div>
+                                      <Badge variant="outline" className="text-[11px] font-normal">
+                                        {READINESS_FACTOR_LABELS[rec.factorId]}
+                                      </Badge>
+                                      <span className="text-[11px] text-muted-foreground">
+                                        ~{rec.weightPercent}% of readiness score
+                                      </span>
+                                    </div>
+                                    <h3 className="text-base font-bold leading-tight">{rec.title}</h3>
+                                    <p className="text-sm text-muted-foreground leading-relaxed">{rec.description}</p>
+                                    <div className="space-y-1">
+                                      <div className="flex items-center justify-between text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
+                                        <span>Factor strength</span>
+                                        <span className="tabular-nums text-foreground">{rec.factorScore}/100</span>
+                                      </div>
+                                      <Progress value={rec.factorScore} className="h-2" />
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                              <div className="mt-4 rounded-lg bg-muted/40 p-3 sm:ml-11">
+                                <p className="mb-2 text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
+                                  Try these steps
+                                </p>
+                                <ul className="space-y-2">
+                                  {rec.steps.map((step, i) => (
+                                    <li key={i} className="flex gap-2 text-sm leading-snug">
+                                      <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded bg-primary/10 text-[10px] font-bold text-primary">
+                                        {i + 1}
+                                      </span>
+                                      <span>{step}</span>
+                                    </li>
+                                  ))}
+                                </ul>
+                              </div>
+                            </div>
+                          </li>
+                        );
+                      })}
+                    </ol>
+                  )}
+                  <Button className="w-full" variant="secondary" asChild>
+                    <Link to="/dashboard">Open Dashboard &amp; snapshot</Link>
+                  </Button>
+                </div>
+              </div>
+            </section>
           </div>
 
           {/* Fund Allocation Chart */}

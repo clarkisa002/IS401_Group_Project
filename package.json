@@ -17,13 +17,13 @@
     "build:server": "vite build --config vite.config.server.ts",
     "start": "node scripts/start-server.cjs",
     "backend": "cd backend && node server.js",
-    "backend:dev": "cd backend && nodemon server.js",
+    "backend:dev": "cd backend && npx nodemon server.js",
     "test": "vitest --run",
     "format.fix": "prettier --write .",
     "typecheck": "tsc"
   },
   "dependencies": {
-    "@supabase/supabase-js": "^2.47.0",
+    "@supabase/supabase-js": "^2.100.1",
     "dotenv": "^17.2.1",
     "express": "^5.1.0",
     "pg": "^8.13.0",

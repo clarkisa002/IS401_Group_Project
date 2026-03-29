@@ -14,7 +14,8 @@ interface AuthContextValue {
   loading: boolean;
   login: (email: string, password: string) => Promise<void>;
   signUp: (email: string, password: string, firstName?: string, lastName?: string) => Promise<void>;
-  loginWithGoogle: () => Promise<void>;
+  /** `redirectPath` should be a path like `/goals` (defaults to `/dashboard`). Uses current origin so local dev stays on localhost. */
+  loginWithGoogle: (redirectPath?: string) => Promise<void>;
   logout: () => void;
 }
 
@@ -143,11 +144,13 @@ export function AuthProvider({ children }: AuthProviderProps) {
     }
   };
 
-  const loginWithGoogle = async () => {
+  const loginWithGoogle = async (redirectPath: string = "/dashboard") => {
+    const path = redirectPath.startsWith("/") ? redirectPath : `/${redirectPath}`;
+    const redirectTo = `${window.location.origin}${path}`;
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
       options: {
-        redirectTo: window.location.origin + "/dashboard",
+        redirectTo,
       },
     });
 

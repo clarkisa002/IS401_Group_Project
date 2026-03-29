@@ -115,7 +115,8 @@ export default function Login() {
                 className="w-full h-11 gap-2"
                 onClick={() => {
                   setError(null);
-                  loginWithGoogle().catch((err) =>
+                  const afterLogin = state.from?.pathname || "/dashboard";
+                  loginWithGoogle(afterLogin).catch((err) =>
                     setError(err instanceof Error ? err.message : "Google sign-in failed.")
                   );
                 }}
