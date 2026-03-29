@@ -1,5 +1,5 @@
 import { Link, useLocation } from "react-router-dom";
-import { LayoutDashboard, Target, TrendingUp, PieChart, Home, Menu, Settings, LogOut, UserCircle2 } from "lucide-react";
+import { LayoutDashboard, Target, TrendingUp, PieChart, Home, Menu, Settings, LogOut, UserCircle2, Trophy } from "lucide-react";
 import { cn, focusRingClasses } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -122,6 +122,12 @@ export function Navbar() {
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild>
+                    <Link to="/achievements" className="cursor-pointer">
+                      <Trophy className="mr-2 h-4 w-4" />
+                      Achievements
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
                     <Link to="/settings" className="cursor-pointer">
                       <Settings className="mr-2 h-4 w-4" />
                       User Settings
@@ -159,6 +165,12 @@ export function Navbar() {
                     <p className="text-xs font-normal text-muted-foreground">{displayEmail}</p>
                   </DropdownMenuLabel>
                   <DropdownMenuSeparator />
+                  <DropdownMenuItem asChild>
+                    <Link to="/achievements" className="cursor-pointer">
+                      <Trophy className="mr-2 h-4 w-4" />
+                      Achievements
+                    </Link>
+                  </DropdownMenuItem>
                   <DropdownMenuItem asChild>
                     <Link to="/settings" className="cursor-pointer">
                       <UserCircle2 className="mr-2 h-4 w-4" />

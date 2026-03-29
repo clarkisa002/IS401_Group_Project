@@ -1,5 +1,7 @@
 # Home Readiness Planner
 
+website: https://is-401-group-project.vercel.app/login
+
 The Home Readiness Planner helps aspiring homeowners move from financial uncertainty to a clear, personalized plan for buying a home. Users can enter financial details, explore affordability scenarios, and track goals toward home ownership.
 
 ## Tech Stack

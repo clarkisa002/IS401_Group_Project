@@ -13,6 +13,14 @@ export interface IncomeTransaction {
   source?: string | null;
 }
 
+/** One row in the Progress chart: monthly net savings with calendar position. */
+export interface MonthlySavingsRow {
+  month: string;
+  amount: number;
+  year: number;
+  monthIndex: number;
+}
+
 export interface UserData {
   name: string;
   avatar: string;
@@ -20,7 +28,7 @@ export interface UserData {
   readinessScore: number;
   savings: {
     total: number;
-    monthly: { month: string; amount: number; costTrend: number }[];
+    monthly: MonthlySavingsRow[];
     target: number;
     homePriceMin?: number;
     allocation: {
@@ -98,12 +106,12 @@ export const DEMO_DATA: UserData = {
     total: 45000,
     target: 80000,
     monthly: [
-      { month: "Jan", amount: 2000, costTrend: 320000 },
-      { month: "Feb", amount: 2200, costTrend: 325000 },
-      { month: "Mar", amount: 1800, costTrend: 330000 },
-      { month: "Apr", amount: 2500, costTrend: 328000 },
-      { month: "May", amount: 2100, costTrend: 335000 },
-      { month: "Jun", amount: 2400, costTrend: 340000 },
+      { month: "Jan", amount: 2000, year: 2025, monthIndex: 1 },
+      { month: "Feb", amount: 2200, year: 2025, monthIndex: 2 },
+      { month: "Mar", amount: 1800, year: 2025, monthIndex: 3 },
+      { month: "Apr", amount: 2500, year: 2025, monthIndex: 4 },
+      { month: "May", amount: 2100, year: 2025, monthIndex: 5 },
+      { month: "Jun", amount: 2400, year: 2025, monthIndex: 6 },
     ],
     allocation: {
       downPayment: 35000,

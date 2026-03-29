@@ -1,6 +1,6 @@
 import { supabase } from "@/lib/supabase";
 import { getCategoryColor } from "@/lib/expense-category-colors";
-import type { UserData } from "@/lib/types";
+import type { MonthlySavingsRow, UserData } from "@/lib/types";
 import { DEMO_DATA } from "@/lib/types";
 import { computeBadges } from "@/lib/badges";
 
@@ -162,7 +162,7 @@ export async function fetchUserData(userId: string, userName: string): Promise<U
     source: r.source,
   }));
 
-  const monthlySavings = buildMonthlySavings(monthlyProgress, homePriceMin);
+  const monthlySavings = buildMonthlySavings(monthlyProgress);
 
   const history = historyRows.length > 0
     ? historyRows.map((h) => ({
@@ -257,17 +257,15 @@ function aggregateExpensesByCategoryLast30Days(expenses: DbExpense[]): Record<st
   );
 }
 
-function buildMonthlySavings(
-  progress: DbMonthlyProgress[],
-  costTrendBase: number
-): { month: string; amount: number; costTrend: number }[] {
+function buildMonthlySavings(progress: DbMonthlyProgress[]): MonthlySavingsRow[] {
   if (progress.length === 0) {
     return DEMO_DATA.savings.monthly;
   }
-  return progress.slice(-6).map((p, i) => ({
+  return progress.slice(-6).map((p) => ({
     month: MONTH_NAMES[p.month - 1] ?? `M${p.month}`,
     amount: parseFloat(p.net_savings ?? "0"),
-    costTrend: costTrendBase + i * 5000,
+    year: p.year,
+    monthIndex: p.month,
   }));
 }
 

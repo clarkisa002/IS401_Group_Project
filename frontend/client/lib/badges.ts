@@ -154,6 +154,248 @@ const RULES: BadgeRule[] = [
       };
     },
   },
+
+  // ---- Additional badges ----
+
+  {
+    id: "savings_1k",
+    title: "First $1K",
+    description: "Your savings journey begins",
+    icon: "PiggyBank",
+    howToEarn: "Save your first $1,000.",
+    evaluate: (data) => {
+      const t = data.savings.total;
+      const unlocked = t >= 1_000;
+      return {
+        unlocked,
+        earnedDetail: unlocked ? `Total saved: ${fmtMoney(t)}.` : null,
+        lockedHint: unlocked ? undefined : `Currently ${fmtMoney(t)} — need ${fmtMoney(Math.max(0, 1_000 - t))} more.`,
+      };
+    },
+  },
+  {
+    id: "savings_25k",
+    title: "$25K milestone",
+    description: "A serious down payment takes shape",
+    icon: "PiggyBank",
+    howToEarn: "Grow total savings to at least $25,000.",
+    evaluate: (data) => {
+      const t = data.savings.total;
+      const unlocked = t >= 25_000;
+      return {
+        unlocked,
+        earnedDetail: unlocked ? `Total saved: ${fmtMoney(t)}.` : null,
+        lockedHint: unlocked ? undefined : `Currently ${fmtMoney(t)} — need ${fmtMoney(Math.max(0, 25_000 - t))} more.`,
+      };
+    },
+  },
+  {
+    id: "savings_50k",
+    title: "$50K saved",
+    description: "Halfway to six figures",
+    icon: "PiggyBank",
+    howToEarn: "Grow total savings to at least $50,000.",
+    evaluate: (data) => {
+      const t = data.savings.total;
+      const unlocked = t >= 50_000;
+      return {
+        unlocked,
+        earnedDetail: unlocked ? `Total saved: ${fmtMoney(t)}.` : null,
+        lockedHint: unlocked ? undefined : `Currently ${fmtMoney(t)} — need ${fmtMoney(Math.max(0, 50_000 - t))} more.`,
+      };
+    },
+  },
+  {
+    id: "savings_100k",
+    title: "Six-figure saver",
+    description: "You saved $100,000!",
+    icon: "Award",
+    howToEarn: "Reach $100,000 in total savings.",
+    evaluate: (data) => {
+      const t = data.savings.total;
+      const unlocked = t >= 100_000;
+      return {
+        unlocked,
+        earnedDetail: unlocked ? `Total saved: ${fmtMoney(t)}.` : null,
+        lockedHint: unlocked ? undefined : `Currently ${fmtMoney(t)} — need ${fmtMoney(Math.max(0, 100_000 - t))} more.`,
+      };
+    },
+  },
+  {
+    id: "goal_complete",
+    title: "Goal crushed",
+    description: "Fully fund a savings goal",
+    icon: "Target",
+    howToEarn: "Reach 100% progress on any active goal.",
+    evaluate: (data) => {
+      const done = data.goals.find((g) => g.target > 0 && g.current >= g.target);
+      return {
+        unlocked: !!done,
+        earnedDetail: done ? `"${done.title}" is fully funded!` : null,
+        lockedHint: done ? undefined : "No goals completed yet.",
+      };
+    },
+  },
+  {
+    id: "multi_goals",
+    title: "Multi-tasker",
+    description: "Juggle three or more goals",
+    icon: "Target",
+    howToEarn: "Have at least 3 active goals at once.",
+    evaluate: (data) => {
+      const n = data.goals.length;
+      const unlocked = n >= 3;
+      return {
+        unlocked,
+        earnedDetail: unlocked ? `You're tracking ${n} goals.` : null,
+        lockedHint: unlocked ? undefined : `${n}/3 active goals.`,
+      };
+    },
+  },
+  {
+    id: "goal_half",
+    title: "Halfway there",
+    description: "Reach 50% on any goal",
+    icon: "TrendingUp",
+    howToEarn: "Get any goal to at least 50% funded.",
+    evaluate: (data) => {
+      const half = data.goals.find((g) => g.target > 0 && g.current / g.target >= 0.5);
+      return {
+        unlocked: !!half,
+        earnedDetail: half
+          ? `"${half.title}" is ${Math.round((half.current / half.target) * 100)}% funded.`
+          : null,
+        lockedHint: half ? undefined : "No goal is at 50% yet.",
+      };
+    },
+  },
+  {
+    id: "expense_tracker_10",
+    title: "Expense pro",
+    description: "Build a real spending picture",
+    icon: "Receipt",
+    howToEarn: "Log at least 10 expense entries.",
+    evaluate: (data) => {
+      const n = data.expenseTransactions.length;
+      const unlocked = n >= 10;
+      return {
+        unlocked,
+        earnedDetail: unlocked ? `${n} expenses recorded.` : null,
+        lockedHint: unlocked ? undefined : `${n}/10 expenses logged.`,
+      };
+    },
+  },
+  {
+    id: "income_5",
+    title: "Steady earner",
+    description: "Consistent income tracking",
+    icon: "Wallet",
+    howToEarn: "Log at least 5 income entries.",
+    evaluate: (data) => {
+      const n = data.incomeTransactions.length;
+      const unlocked = n >= 5;
+      return {
+        unlocked,
+        earnedDetail: unlocked ? `${n} income entries logged.` : null,
+        lockedHint: unlocked ? undefined : `${n}/5 income entries.`,
+      };
+    },
+  },
+  {
+    id: "credit_good",
+    title: "Good credit",
+    description: "Your credit score is in great shape",
+    icon: "Shield",
+    howToEarn: "Have a credit score of 700 or higher in your profile.",
+    evaluate: (data) => {
+      const score = data.creditScore;
+      const unlocked = score >= 700;
+      return {
+        unlocked,
+        earnedDetail: unlocked ? `Credit score: ${score}.` : null,
+        lockedHint: unlocked ? undefined : `Score: ${score} — need 700+.`,
+      };
+    },
+  },
+  {
+    id: "credit_excellent",
+    title: "Excellent credit",
+    description: "Top-tier credit score",
+    icon: "Award",
+    howToEarn: "Reach a credit score of 750 or higher.",
+    evaluate: (data) => {
+      const score = data.creditScore;
+      const unlocked = score >= 750;
+      return {
+        unlocked,
+        earnedDetail: unlocked ? `Credit score: ${score}.` : null,
+        lockedHint: unlocked ? undefined : `Score: ${score} — need 750+.`,
+      };
+    },
+  },
+  {
+    id: "readiness_50",
+    title: "Readiness 50+",
+    description: "You're getting closer to home-ready",
+    icon: "Zap",
+    howToEarn: "Raise your readiness score to at least 50.",
+    evaluate: (data) => {
+      const score = data.readinessScore;
+      const unlocked = score >= 50;
+      return {
+        unlocked,
+        earnedDetail: unlocked ? `Score: ${score}/100.` : null,
+        lockedHint: unlocked ? undefined : `Score: ${score}/100 — need 50+.`,
+      };
+    },
+  },
+  {
+    id: "readiness_90",
+    title: "Almost there!",
+    description: "Readiness score above 90",
+    icon: "Award",
+    howToEarn: "Push your readiness score to 90 or higher — you're nearly home-ready!",
+    evaluate: (data) => {
+      const score = data.readinessScore;
+      const unlocked = score >= 90;
+      return {
+        unlocked,
+        earnedDetail: unlocked ? `Score: ${score}/100.` : null,
+        lockedHint: unlocked ? undefined : `Score: ${score}/100 — need 90+.`,
+      };
+    },
+  },
+  {
+    id: "streak_12",
+    title: "Year-long streak",
+    description: "A full year of consistent saving",
+    icon: "Flame",
+    howToEarn: "Save for 12 consecutive months.",
+    evaluate: (data) => {
+      const s = data.streak;
+      const unlocked = s >= 12;
+      return {
+        unlocked,
+        earnedDetail: unlocked ? `Current streak: ${s} months.` : null,
+        lockedHint: unlocked ? undefined : `Streak: ${s}/12 months.`,
+      };
+    },
+  },
+  {
+    id: "debt_free",
+    title: "Debt free",
+    description: "Zero debt on the books",
+    icon: "Shield",
+    howToEarn: "Bring your total debt to $0 in your financial snapshot.",
+    evaluate: (data) => {
+      const unlocked = data.debt <= 0;
+      return {
+        unlocked,
+        earnedDetail: unlocked ? "You have no recorded debt!" : null,
+        lockedHint: unlocked ? undefined : `Current debt: ${fmtMoney(data.debt)}.`,
+      };
+    },
+  },
 ];
 
 /**

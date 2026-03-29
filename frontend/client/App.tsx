@@ -5,13 +5,14 @@ import { createRoot } from "react-dom/client";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 import Index from "./pages/Index";
 import Dashboard from "./pages/Dashboard";
 import Progress from "./pages/Progress";
 import Goals from "./pages/Goals";
 import Spending from "./pages/Spending";
 import Settings from "./pages/Settings";
+import Achievements from "./pages/Achievements";
 import NotFound from "./pages/NotFound";
 import Login from "./pages/Login";
 import SignUp from "./pages/SignUp";
@@ -22,6 +23,15 @@ import TermsOfService from "./pages/TermsOfService";
 import { AuthProvider } from "@/hooks/use-auth";
 import { ColorSchemeProvider } from "@/hooks/use-color-scheme";
 import { RequireAuth } from "@/components/RequireAuth";
+import { useEffect } from "react";
+
+function ScrollToTop() {
+  const { pathname } = useLocation();
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [pathname]);
+  return null;
+}
 
 const queryClient = new QueryClient();
 
@@ -32,6 +42,7 @@ const App = () => (
       <Toaster />
       <Sonner />
       <BrowserRouter>
+        <ScrollToTop />
         <AuthProvider>
           <Routes>
             <Route
@@ -85,6 +96,14 @@ const App = () => (
               element={
                 <RequireAuth>
                   <Settings />
+                </RequireAuth>
+              }
+            />
+            <Route
+              path="/achievements"
+              element={
+                <RequireAuth>
+                  <Achievements />
                 </RequireAuth>
               }
             />

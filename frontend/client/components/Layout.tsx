@@ -3,6 +3,8 @@ import { Navbar } from "./Navbar";
 import { Link, useLocation } from "react-router-dom";
 import { ChevronRight, Home, LayoutDashboard, TrendingUp, Target, PieChart } from "lucide-react";
 import { cn, focusRingClasses } from "@/lib/utils";
+import { useUserData } from "@/hooks/use-user-data";
+import { useBadgeNotifications } from "@/hooks/use-badge-notifications";
 
 interface LayoutProps {
   children: ReactNode;
@@ -17,6 +19,8 @@ const mobileNavItems = [
 
 export function Layout({ children }: LayoutProps) {
   const location = useLocation();
+  const { data } = useUserData();
+  useBadgeNotifications(data?.achievements);
 
   // Breadcrumb generator
   const pathnames = location.pathname.split("/").filter((x) => x);
