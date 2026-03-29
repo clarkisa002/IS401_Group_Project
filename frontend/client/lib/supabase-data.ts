@@ -2,6 +2,7 @@ import { supabase } from "@/lib/supabase";
 import { getCategoryColor } from "@/lib/expense-category-colors";
 import type { UserData } from "@/lib/types";
 import { DEMO_DATA } from "@/lib/types";
+import { computeBadges } from "@/lib/badges";
 
 const MONTH_NAMES = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
@@ -185,7 +186,7 @@ export async function fetchUserData(userId: string, userName: string): Promise<U
   const computedDebtToIncome =
     computedIncome > 0 && debt > 0 ? (debt / (computedIncome / 12)) / 100 : debtToIncomeRatio;
 
-  return {
+  const userData: UserData = {
     name: userName,
     avatar: userName.slice(0, 1).toUpperCase(),
     creditScore,
@@ -206,9 +207,10 @@ export async function fetchUserData(userId: string, userName: string): Promise<U
     incomeTransactions,
     history,
     goals: goalsForUserData,
-    achievements: DEMO_DATA.achievements,
+    achievements: [],
     streak: computeStreak(monthlyProgress),
   };
+  return { ...userData, achievements: computeBadges(userData) };
 }
 
 function getDateMonthsAgo(months: number): string {

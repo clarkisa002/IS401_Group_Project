@@ -2,6 +2,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { UserData, DEMO_DATA } from "@/lib/types";
 import { useAuth } from "@/hooks/use-auth";
 import { fetchUserData } from "@/lib/supabase-data";
+import { computeBadges } from "@/lib/badges";
 
 export const USER_DATA_QUERY_KEY = ["userData"] as const;
 
@@ -22,10 +23,12 @@ export function useUserData() {
     placeholderData: user ? undefined : DEMO_DATA,
   });
 
-  const data: UserData | null =
+  const base: UserData | null =
     supabaseData && user
       ? { ...supabaseData, name: user.name }
       : supabaseData ?? (user ? null : DEMO_DATA);
+
+  const data: UserData | null = base ? { ...base, achievements: computeBadges(base) } : null;
 
   const loading = isLoading;
 

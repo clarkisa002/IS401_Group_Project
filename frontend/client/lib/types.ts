@@ -53,15 +53,35 @@ export interface UserData {
     deadline: string;
     icon: string;
   }[];
-  achievements: {
-    id: string;
-    title: string;
-    description: string;
-    unlocked: boolean;
-    icon: string;
-  }[];
+  achievements: Achievement[];
   streak: number;
 }
+
+/** Dashboard badges — unlock rules live in `lib/badges.ts` */
+export interface Achievement {
+  id: string;
+  title: string;
+  description: string;
+  unlocked: boolean;
+  icon: AchievementIcon;
+  /** How to earn (always shown) */
+  howToEarn: string;
+  /** When unlocked: what your data shows */
+  earnedDetail: string | null;
+  /** When locked: optional current status (e.g. progress toward the rule) */
+  lockedHint?: string | null;
+}
+
+export type AchievementIcon =
+  | "Target"
+  | "TrendingUp"
+  | "Zap"
+  | "PiggyBank"
+  | "Wallet"
+  | "Receipt"
+  | "Award"
+  | "Shield"
+  | "Flame";
 
 function isoDaysAgo(days: number): string {
   const d = new Date();
@@ -186,10 +206,6 @@ export const DEMO_DATA: UserData = {
     { id: "2", title: "Emergency Fund", target: 10000, current: 7000, deadline: "2024-06-30", icon: "Shield" },
     { id: "3", title: "Closing Costs", target: 10000, current: 3000, deadline: "2025-12-31", icon: "FileText" },
   ],
-  achievements: [
-    { id: "1", title: "First $10k", description: "Saved your first $10,000", unlocked: true, icon: "Target" },
-    { id: "2", title: "Consistent Saver", description: "Saved for 6 months straight", unlocked: true, icon: "TrendingUp" },
-    { id: "3", title: "Debt Slayer", description: "Paid off 50% of your debt", unlocked: false, icon: "Zap" },
-  ],
+  achievements: [],
   streak: 6,
 };

@@ -2,13 +2,22 @@ import { useState } from "react";
 import { Layout } from "@/components/Layout";
 import { useUserData } from "@/hooks/use-user-data";
 import { Link } from "react-router-dom";
+import type { Achievement } from "@/lib/types";
 import {
   TrendingUp,
   Wallet,
-  ArrowUpRight, 
+  ArrowUpRight,
   Info,
   Download,
-  RefreshCcw
+  RefreshCcw,
+  Target,
+  Zap,
+  PiggyBank,
+  Receipt,
+  Award,
+  Shield,
+  Flame,
+  type LucideIcon,
 } from "lucide-react";
 import { 
   ResponsiveContainer, 
@@ -27,17 +36,31 @@ import {
   Dialog,
   DialogContent,
   DialogDescription,
+  DialogFooter,
+  DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
 import { FinancialSnapshotForm } from "@/components/FinancialSnapshotForm";
 import { Progress } from "@/components/ui/progress";
-import { Tooltip as UITooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { motion } from "framer-motion";
+
+const BADGE_ICONS: Record<string, LucideIcon> = {
+  Target,
+  TrendingUp,
+  Zap,
+  PiggyBank,
+  Wallet,
+  Receipt,
+  Award,
+  Shield,
+  Flame,
+};
 
 export default function Dashboard() {
   const { data, refreshData, exportData } = useUserData();
   const quote = useSessionQuote(data?.readinessScore ?? 0);
   const [snapshotDialogOpen, setSnapshotDialogOpen] = useState(false);
+  const [badgeDetail, setBadgeDetail] = useState<Achievement | null>(null);
 
   if (!data) return null;
 
@@ -295,24 +318,37 @@ export default function Dashboard() {
             </CardHeader>
             <CardContent>
               <div className="flex flex-wrap gap-4">
-                {data.achievements.map((achievement) => (
-                  <div
-                    key={achievement.id}
-                    className={cn(
-                      "flex flex-col items-center gap-2 p-4 rounded-2xl border text-center transition-all w-[140px]",
-                      achievement.unlocked ? "bg-primary/5 border-primary/20" : "opacity-40 bg-muted grayscale"
-                    )}
-                  >
-                    <div className={cn(
-                      "flex h-12 w-12 items-center justify-center rounded-full shadow-inner",
-                      achievement.unlocked ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"
-                    )}>
-                      <TrendingUp className="h-6 w-6" />
-                    </div>
-                    <span className="text-xs font-bold leading-tight">{achievement.title}</span>
-                    {!achievement.unlocked && <span className="text-[10px] uppercase tracking-tighter font-bold">Locked</span>}
-                  </div>
-                ))}
+                {data.achievements.map((achievement) => {
+                  const Icon = BADGE_ICONS[achievement.icon] ?? TrendingUp;
+                  return (
+                    <button
+                      key={achievement.id}
+                      type="button"
+                      onClick={() => setBadgeDetail(achievement)}
+                      className={cn(
+                        "flex flex-col items-center gap-2 p-4 rounded-2xl border text-center transition-all w-[140px]",
+                        "hover:ring-2 hover:ring-primary/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+                        achievement.unlocked ? "bg-primary/5 border-primary/20" : "opacity-40 bg-muted grayscale"
+                      )}
+                    >
+                      <div
+                        className={cn(
+                          "flex h-12 w-12 items-center justify-center rounded-full shadow-inner",
+                          achievement.unlocked
+                            ? "bg-primary text-primary-foreground"
+                            : "bg-muted text-muted-foreground"
+                        )}
+                      >
+                        <Icon className="h-6 w-6" aria-hidden />
+                      </div>
+                      <span className="text-xs font-bold leading-tight">{achievement.title}</span>
+                      {!achievement.unlocked && (
+                        <span className="text-[10px] uppercase tracking-tighter font-bold">Locked</span>
+                      )}
+                      <span className="sr-only">View how to earn this badge</span>
+                    </button>
+                  );
+                })}
               </div>
             </CardContent>
           </Card>
@@ -361,6 +397,64 @@ export default function Dashboard() {
             Update your credit score, income, debt, and savings snapshot.
           </DialogDescription>
           <FinancialSnapshotForm onSaved={() => setSnapshotDialogOpen(false)} />
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={badgeDetail !== null} onOpenChange={(open) => !open && setBadgeDetail(null)}>
+        <DialogContent className="sm:max-w-md">
+          {badgeDetail && (
+            <>
+              <DialogHeader>
+                <div className="flex items-center gap-3">
+                  <div
+                    className={cn(
+                      "flex h-12 w-12 shrink-0 items-center justify-center rounded-full",
+                      badgeDetail.unlocked
+                        ? "bg-primary text-primary-foreground"
+                        : "bg-muted text-muted-foreground"
+                    )}
+                  >
+                    {(() => {
+                      const DetailIcon = BADGE_ICONS[badgeDetail.icon] ?? TrendingUp;
+                      return <DetailIcon className="h-6 w-6" aria-hidden />;
+                    })()}
+                  </div>
+                  <div>
+                    <DialogTitle className="text-left">{badgeDetail.title}</DialogTitle>
+                    <p className="text-sm text-muted-foreground text-left mt-1">{badgeDetail.description}</p>
+                  </div>
+                </div>
+              </DialogHeader>
+              <div className="space-y-4 text-sm">
+                <div>
+                  <p className="font-semibold text-foreground mb-1">How to earn</p>
+                  <p className="text-muted-foreground leading-relaxed">{badgeDetail.howToEarn}</p>
+                </div>
+                {badgeDetail.unlocked && badgeDetail.earnedDetail ? (
+                  <div className="rounded-lg border bg-emerald-500/5 border-emerald-500/20 p-3">
+                    <p className="font-semibold text-emerald-800 dark:text-emerald-200 mb-1">Earned</p>
+                    <p className="text-muted-foreground">{badgeDetail.earnedDetail}</p>
+                  </div>
+                ) : (
+                  <div className="rounded-lg border bg-muted/50 p-3">
+                    <p className="font-semibold mb-1">Not yet earned</p>
+                    {badgeDetail.lockedHint ? (
+                      <p className="text-muted-foreground">{badgeDetail.lockedHint}</p>
+                    ) : (
+                      <p className="text-muted-foreground">
+                        Keep tracking data in the app — this badge unlocks when you meet the criteria above.
+                      </p>
+                    )}
+                  </div>
+                )}
+              </div>
+              <DialogFooter>
+                <Button type="button" variant="secondary" onClick={() => setBadgeDetail(null)}>
+                  Close
+                </Button>
+              </DialogFooter>
+            </>
+          )}
         </DialogContent>
       </Dialog>
     </Layout>
