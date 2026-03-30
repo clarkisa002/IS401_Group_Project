@@ -161,7 +161,10 @@ function IndexContent() {
                 <div className="h-[300px] w-full">
                   {hasReadableScoreHistory ? (
                     <ResponsiveContainer width="100%" height="100%">
-                      <AreaChart data={chartData}>
+                      <AreaChart
+                        data={chartData}
+                        margin={{ top: 8, right: 12, left: 12, bottom: tiltTicks ? 40 : 24 }}
+                      >
                         <defs>
                           <linearGradient id="colorScore" x1="0" y1="0" x2="0" y2="1">
                             <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.3}/>
@@ -173,17 +176,19 @@ function IndexContent() {
                           type="category"
                           dataKey="name"
                           interval={0}
-                          tickFormatter={(v) => chartData[Number(v)]?.displayLabel ?? ""}
+                          padding={{ left: 10, right: 10 }}
+                          tickMargin={12}
+                          tickFormatter={(v) => chartData[Number(v)]?.axisLabel ?? ""}
                           axisLine={false}
                           tickLine={false}
                           tick={{
                             fill: chartTheme.tickFill,
                             fontSize: tiltTicks ? 10 : 12,
                           }}
-                          dy={10}
-                          angle={tiltTicks ? -32 : 0}
+                          dy={tiltTicks ? 12 : 10}
+                          angle={tiltTicks ? -24 : 0}
                           textAnchor={tiltTicks ? "end" : "middle"}
-                          height={tiltTicks ? 56 : 36}
+                          height={tiltTicks ? 62 : 40}
                         />
                         <YAxis 
                           hide 
@@ -191,7 +196,7 @@ function IndexContent() {
                         />
                         <Tooltip
                           labelFormatter={(label) =>
-                            chartData[Number(label)]?.displayLabel ?? String(label)
+                            chartData[Number(label)]?.tooltipLabel ?? String(label)
                           }
                           contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' }}
                         />

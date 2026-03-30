@@ -305,7 +305,7 @@ function DashboardContent() {
                         type="category"
                         dataKey="name"
                         interval={0}
-                        tickFormatter={(v) => chartData[Number(v)]?.displayLabel ?? ""}
+                        tickFormatter={(v) => chartData[Number(v)]?.axisLabel ?? ""}
                         axisLine={false}
                         tickLine={false}
                         tick={{
@@ -325,7 +325,7 @@ function DashboardContent() {
                       />
                       <Tooltip
                         labelFormatter={(label) =>
-                          chartData[Number(label)]?.displayLabel ?? String(label)
+                          chartData[Number(label)]?.tooltipLabel ?? String(label)
                         }
                         contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' }}
                         cursor={{ stroke: 'hsl(var(--primary))', strokeWidth: 2, strokeDasharray: '5 5' }}

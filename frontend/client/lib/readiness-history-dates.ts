@@ -57,14 +57,16 @@ export type ReadinessHistoryChartRow = {
   /** Ordinal index on the X-axis (even spacing). */
   name: string;
   dateKey: string;
-  /** Tick + tooltip label; same calendar day gets (1/n), (2/n), … when needed. */
-  displayLabel: string;
+  /** Short label for axis ticks (no year); same calendar day gets (1/n), (2/n), … when needed. */
+  axisLabel: string;
+  /** Full tooltip label; same calendar day gets (1/n), (2/n), … when needed. */
+  tooltipLabel: string;
   score: number;
 };
 
 /**
- * Rows for Recharts: ordinal `name` so points are evenly spaced, and `displayLabel`
- * disambiguates multiple snapshots on the same calendar day.
+ * Rows for Recharts: ordinal `name` so points are evenly spaced, and labels
+ * disambiguate multiple snapshots on the same calendar day.
  */
 export function buildReadinessHistoryChartRows(
   history: { date: string; score: number }[]
@@ -78,14 +80,35 @@ export function buildReadinessHistoryChartRows(
     const c = (seen.get(h.date) ?? 0) + 1;
     seen.set(h.date, c);
     const totalOnDay = countsByDate.get(h.date) ?? 1;
-    const base = formatReadinessHistoryDateLabel(h.date);
-    const displayLabel =
-      totalOnDay > 1 ? `${base} (${c}/${totalOnDay})` : base;
+    const tooltipBase = formatReadinessHistoryDateLabel(h.date);
+    const axisBase = formatReadinessHistoryAxisDateLabel(h.date);
+    const suffix = totalOnDay > 1 ? ` (${c}/${totalOnDay})` : "";
     return {
       name: String(i),
       dateKey: h.date,
-      displayLabel,
+      axisLabel: `${axisBase}${suffix}`,
+      tooltipLabel: `${tooltipBase}${suffix}`,
       score: h.score,
     };
   });
+}
+
+function formatReadinessHistoryAxisDateLabel(value: string): string {
+  const ymd = value.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if (ymd) {
+    const d = new Date(
+      parseInt(ymd[1], 10),
+      parseInt(ymd[2], 10) - 1,
+      parseInt(ymd[3], 10)
+    );
+    return d.toLocaleDateString(undefined, { month: "short", day: "numeric" });
+  }
+  const ym = value.match(/^(\d{4})-(\d{2})$/);
+  if (ym) {
+    const d = new Date(parseInt(ym[1], 10), parseInt(ym[2], 10) - 1, 1);
+    return d.toLocaleDateString(undefined, { month: "short", day: "numeric" });
+  }
+  const parsed = new Date(value);
+  if (Number.isNaN(parsed.getTime())) return value;
+  return parsed.toLocaleDateString(undefined, { month: "short", day: "numeric" });
 }
