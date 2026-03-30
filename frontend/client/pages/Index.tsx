@@ -13,8 +13,10 @@ function IndexContent() {
   const data = useRequiredUserData();
   const reduceMotion = useReducedMotion();
 
-  const chartData = data.history.map((h) => ({
-    name: h.date,
+  /** Ordinal index on X so points are evenly spaced; dates only in labels/tooltip. */
+  const chartData = data.history.map((h, i) => ({
+    name: String(i),
+    dateKey: h.date,
     score: h.score,
   }));
 
@@ -169,8 +171,14 @@ function IndexContent() {
                         </defs>
                         <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={chartTheme.gridStroke} />
                         <XAxis
+                          type="category"
                           dataKey="name"
-                          tickFormatter={(v) => formatReadinessHistoryDateLabel(String(v))}
+                          tickFormatter={(v) => {
+                            const row = chartData[Number(v)];
+                            return row
+                              ? formatReadinessHistoryDateLabel(row.dateKey)
+                              : "";
+                          }}
                           axisLine={false}
                           tickLine={false}
                           tick={{ fill: chartTheme.tickFill, fontSize: 12 }}
@@ -181,7 +189,12 @@ function IndexContent() {
                           domain={[0, 100]}
                         />
                         <Tooltip
-                          labelFormatter={(label) => formatReadinessHistoryDateLabel(String(label))}
+                          labelFormatter={(label) => {
+                            const row = chartData[Number(label)];
+                            return row
+                              ? formatReadinessHistoryDateLabel(row.dateKey)
+                              : String(label);
+                          }}
                           contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' }}
                         />
                         <Area 
