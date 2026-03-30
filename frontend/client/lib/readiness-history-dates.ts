@@ -52,3 +52,40 @@ export function formatReadinessHistoryDateLabel(value: string): string {
     year: "numeric",
   });
 }
+
+export type ReadinessHistoryChartRow = {
+  /** Ordinal index on the X-axis (even spacing). */
+  name: string;
+  dateKey: string;
+  /** Tick + tooltip label; same calendar day gets (1/n), (2/n), … when needed. */
+  displayLabel: string;
+  score: number;
+};
+
+/**
+ * Rows for Recharts: ordinal `name` so points are evenly spaced, and `displayLabel`
+ * disambiguates multiple snapshots on the same calendar day.
+ */
+export function buildReadinessHistoryChartRows(
+  history: { date: string; score: number }[]
+): ReadinessHistoryChartRow[] {
+  const countsByDate = new Map<string, number>();
+  for (const h of history) {
+    countsByDate.set(h.date, (countsByDate.get(h.date) ?? 0) + 1);
+  }
+  const seen = new Map<string, number>();
+  return history.map((h, i) => {
+    const c = (seen.get(h.date) ?? 0) + 1;
+    seen.set(h.date, c);
+    const totalOnDay = countsByDate.get(h.date) ?? 1;
+    const base = formatReadinessHistoryDateLabel(h.date);
+    const displayLabel =
+      totalOnDay > 1 ? `${base} (${c}/${totalOnDay})` : base;
+    return {
+      name: String(i),
+      dateKey: h.date,
+      displayLabel,
+      score: h.score,
+    };
+  });
+}

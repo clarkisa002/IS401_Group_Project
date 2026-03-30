@@ -7,18 +7,17 @@ import { Link } from "react-router-dom";
 import { ResponsiveContainer, XAxis, YAxis, Tooltip, CartesianGrid, AreaChart, Area } from "recharts";
 import { motion, useReducedMotion } from "framer-motion";
 import { cn, focusRingClasses, chartTheme } from "@/lib/utils";
-import { formatReadinessHistoryDateLabel } from "@/lib/readiness-history-dates";
+import { buildReadinessHistoryChartRows } from "@/lib/readiness-history-dates";
 
 function IndexContent() {
   const data = useRequiredUserData();
   const reduceMotion = useReducedMotion();
 
-  /** Ordinal index on X so points are evenly spaced; dates only in labels/tooltip. */
-  const chartData = data.history.map((h, i) => ({
-    name: String(i),
-    dateKey: h.date,
-    score: h.score,
-  }));
+  const chartData = useMemo(
+    () => buildReadinessHistoryChartRows(data.history),
+    [data.history]
+  );
+  const tiltTicks = chartData.length > 6;
 
   const trajectoryChange = useMemo(() => {
     const h = data.history;
@@ -173,28 +172,27 @@ function IndexContent() {
                         <XAxis
                           type="category"
                           dataKey="name"
-                          tickFormatter={(v) => {
-                            const row = chartData[Number(v)];
-                            return row
-                              ? formatReadinessHistoryDateLabel(row.dateKey)
-                              : "";
-                          }}
+                          interval={0}
+                          tickFormatter={(v) => chartData[Number(v)]?.displayLabel ?? ""}
                           axisLine={false}
                           tickLine={false}
-                          tick={{ fill: chartTheme.tickFill, fontSize: 12 }}
+                          tick={{
+                            fill: chartTheme.tickFill,
+                            fontSize: tiltTicks ? 10 : 12,
+                          }}
                           dy={10}
+                          angle={tiltTicks ? -32 : 0}
+                          textAnchor={tiltTicks ? "end" : "middle"}
+                          height={tiltTicks ? 56 : 36}
                         />
                         <YAxis 
                           hide 
                           domain={[0, 100]}
                         />
                         <Tooltip
-                          labelFormatter={(label) => {
-                            const row = chartData[Number(label)];
-                            return row
-                              ? formatReadinessHistoryDateLabel(row.dateKey)
-                              : String(label);
-                          }}
+                          labelFormatter={(label) =>
+                            chartData[Number(label)]?.displayLabel ?? String(label)
+                          }
                           contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' }}
                         />
                         <Area 

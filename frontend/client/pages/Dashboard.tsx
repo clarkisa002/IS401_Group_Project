@@ -31,7 +31,7 @@ import {
   CartesianGrid
 } from "recharts";
 import { cn, chartTheme } from "@/lib/utils";
-import { formatReadinessHistoryDateLabel } from "@/lib/readiness-history-dates";
+import { buildReadinessHistoryChartRows } from "@/lib/readiness-history-dates";
 import { useSessionQuote } from "@/hooks/use-session-quote";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -107,10 +107,11 @@ function DashboardContent() {
     return "Getting Started";
   };
 
-  const chartData = data.history.map(h => ({
-    name: h.date,
-    score: h.score,
-  }));
+  const chartData = useMemo(
+    () => buildReadinessHistoryChartRows(data.history),
+    [data.history]
+  );
+  const scoreHistoryTiltTicks = chartData.length > 5;
   const hasReadableScoreHistory = data.history.length >= 2;
 
   return (
@@ -301,12 +302,20 @@ function DashboardContent() {
                     <LineChart data={chartData}>
                       <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={chartTheme.gridStroke} />
                       <XAxis
+                        type="category"
                         dataKey="name"
-                        tickFormatter={(v) => formatReadinessHistoryDateLabel(String(v))}
+                        interval={0}
+                        tickFormatter={(v) => chartData[Number(v)]?.displayLabel ?? ""}
                         axisLine={false}
                         tickLine={false}
-                        tick={{ fill: chartTheme.tickFill, fontSize: 11 }}
+                        tick={{
+                          fill: chartTheme.tickFill,
+                          fontSize: scoreHistoryTiltTicks ? 9 : 11,
+                        }}
                         dy={8}
+                        angle={scoreHistoryTiltTicks ? -32 : 0}
+                        textAnchor={scoreHistoryTiltTicks ? "end" : "middle"}
+                        height={scoreHistoryTiltTicks ? 48 : 32}
                       />
                       <YAxis
                         axisLine={false}
@@ -315,7 +324,9 @@ function DashboardContent() {
                         domain={[0, 100]}
                       />
                       <Tooltip
-                        labelFormatter={(label) => formatReadinessHistoryDateLabel(String(label))}
+                        labelFormatter={(label) =>
+                          chartData[Number(label)]?.displayLabel ?? String(label)
+                        }
                         contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' }}
                         cursor={{ stroke: 'hsl(var(--primary))', strokeWidth: 2, strokeDasharray: '5 5' }}
                       />
