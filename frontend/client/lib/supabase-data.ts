@@ -3,6 +3,7 @@ import { getCategoryColor } from "@/lib/expense-category-colors";
 import type { MonthlySavingsRow, UserData } from "@/lib/types";
 import { DEMO_DATA } from "@/lib/types";
 import { computeBadges } from "@/lib/badges";
+import { historyDateKeyFromRecordedAt } from "@/lib/readiness-history-dates";
 
 const MONTH_NAMES = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
@@ -179,10 +180,10 @@ export async function fetchUserData(userId: string, userName: string): Promise<U
 
   const history = historyRows.length > 0
     ? historyRows.map((h) => ({
-        date: formatMonthYear(h.recorded_at),
+        date: historyDateKeyFromRecordedAt(h.recorded_at),
         score: h.score,
       }))
-    : [{ date: formatMonthYear(new Date()), score }];
+    : [{ date: historyDateKeyFromRecordedAt(new Date()), score }];
 
   const goalsForUserData = goals.map((g) => ({
     id: g.goal_id,
@@ -230,13 +231,6 @@ function getDateMonthsAgo(months: number): string {
   const d = new Date();
   d.setMonth(d.getMonth() - months);
   return d.toISOString().slice(0, 10);
-}
-
-function formatMonthYear(iso: string | Date): string {
-  const d = typeof iso === "string" ? new Date(iso) : iso;
-  const y = d.getFullYear();
-  const m = d.getMonth();
-  return `${y}-${String(m + 1).padStart(2, "0")}`;
 }
 
 function uniqueMonths(dates: string[]): number {

@@ -31,6 +31,7 @@ import {
   CartesianGrid
 } from "recharts";
 import { cn, chartTheme } from "@/lib/utils";
+import { formatReadinessHistoryDateLabel } from "@/lib/readiness-history-dates";
 import { useSessionQuote } from "@/hooks/use-session-quote";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -301,6 +302,7 @@ function DashboardContent() {
                       <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={chartTheme.gridStroke} />
                       <XAxis
                         dataKey="name"
+                        tickFormatter={(v) => formatReadinessHistoryDateLabel(String(v))}
                         axisLine={false}
                         tickLine={false}
                         tick={{ fill: chartTheme.tickFill, fontSize: 11 }}
@@ -312,7 +314,8 @@ function DashboardContent() {
                         tick={{ fill: chartTheme.tickFill, fontSize: 11 }}
                         domain={[0, 100]}
                       />
-                      <Tooltip 
+                      <Tooltip
+                        labelFormatter={(label) => formatReadinessHistoryDateLabel(String(label))}
                         contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' }}
                         cursor={{ stroke: 'hsl(var(--primary))', strokeWidth: 2, strokeDasharray: '5 5' }}
                       />

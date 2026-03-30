@@ -40,22 +40,11 @@ import {
   pickDefaultGoalId,
   type ProgressChartRow,
 } from "@/lib/progress-on-track";
+import { formatReadinessHistoryDateLabel } from "@/lib/readiness-history-dates";
 
 const ON_TRACK_BAR_COLOR = "#10b981";
 
 type ChartRow = ProgressChartRow & { onTrackPlanned: number };
-
-function formatHistoryDateLabel(iso: string): string {
-  const m = iso.match(/^(\d{4})-(\d{2})$/);
-  if (m) {
-    const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-    return `${months[parseInt(m[2], 10) - 1]} ${m[1]}`;
-  }
-  const d = new Date(iso);
-  return !Number.isNaN(d.getTime())
-    ? d.toLocaleDateString(undefined, { month: "short", year: "numeric" })
-    : iso;
-}
 
 function ProgressContent() {
   const data = useRequiredUserData();
@@ -126,7 +115,7 @@ function ProgressContent() {
     if (data.history.length >= 1) {
       out.push({
         title: "Started tracking readiness",
-        date: formatHistoryDateLabel(data.history[0].date),
+        date: formatReadinessHistoryDateLabel(data.history[0].date),
         status: "completed",
       });
     }

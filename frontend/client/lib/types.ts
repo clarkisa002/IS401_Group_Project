@@ -49,6 +49,7 @@ export interface UserData {
   /** Raw rows for date-filtered spending views; empty when using demo fallback without DB. */
   expenseTransactions: ExpenseTransaction[];
   incomeTransactions: IncomeTransaction[];
+  /** Readiness snapshots over time; `date` is local calendar day YYYY-MM-DD for charts. */
   history: {
     date: string;
     score: number;
@@ -202,12 +203,12 @@ export const DEMO_DATA: UserData = {
     { amount: 3500, income_date: isoDaysAgo(44), source: "Paycheck" },
   ],
   history: [
-    { date: "2023-01", score: 45 },
-    { date: "2023-02", score: 48 },
-    { date: "2023-03", score: 52 },
-    { date: "2023-04", score: 58 },
-    { date: "2023-05", score: 62 },
-    { date: "2023-06", score: 68 },
+    { date: "2023-01-15", score: 45 },
+    { date: "2023-02-20", score: 48 },
+    { date: "2023-03-18", score: 52 },
+    { date: "2023-04-22", score: 58 },
+    { date: "2023-05-25", score: 62 },
+    { date: "2023-06-28", score: 68 },
   ],
   goals: [
     { id: "1", title: "Down Payment", target: 60000, current: 35000, deadline: "2025-12-31", icon: "Home" },

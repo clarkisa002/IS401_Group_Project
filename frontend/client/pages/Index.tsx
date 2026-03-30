@@ -7,6 +7,7 @@ import { Link } from "react-router-dom";
 import { ResponsiveContainer, XAxis, YAxis, Tooltip, CartesianGrid, AreaChart, Area } from "recharts";
 import { motion, useReducedMotion } from "framer-motion";
 import { cn, focusRingClasses, chartTheme } from "@/lib/utils";
+import { formatReadinessHistoryDateLabel } from "@/lib/readiness-history-dates";
 
 function IndexContent() {
   const data = useRequiredUserData();
@@ -169,6 +170,7 @@ function IndexContent() {
                         <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={chartTheme.gridStroke} />
                         <XAxis
                           dataKey="name"
+                          tickFormatter={(v) => formatReadinessHistoryDateLabel(String(v))}
                           axisLine={false}
                           tickLine={false}
                           tick={{ fill: chartTheme.tickFill, fontSize: 12 }}
@@ -178,7 +180,8 @@ function IndexContent() {
                           hide 
                           domain={[0, 100]}
                         />
-                        <Tooltip 
+                        <Tooltip
+                          labelFormatter={(label) => formatReadinessHistoryDateLabel(String(label))}
                           contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' }}
                         />
                         <Area 
